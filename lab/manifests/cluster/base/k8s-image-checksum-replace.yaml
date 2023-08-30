@@ -1,0 +1,13 @@
+source:
+  kind: ConfigMap
+  name: k8s-cluster-version
+  fieldPath: data.NODE_IMAGE_CHECKSUM
+targets:
+  - select:
+      group: infrastructure.cluster.x-k8s.io
+      version: v1beta1
+      kind: Metal3MachineTemplate
+    fieldPaths:
+      - spec.template.spec.image.checksum
+    options:
+      create: true

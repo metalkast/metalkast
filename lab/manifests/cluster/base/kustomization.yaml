@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - internal/base
+
+patches:
+  - target:
+      kind: Metal3MachineTemplate
+    patch: |
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: Metal3MachineTemplate
+      metadata:
+        name: notImportant
+      spec:
+        template:
+          spec:
+            image:
+              checksum: <IMAGE_URL>.sha256sum
+
+replacements:
+  - path: k8s-endpoint-replace.yaml
+  - path: k8s-image-url-replace.yaml
+  - path: k8s-image-checksum-replace.yaml
+  - path: k8s-version-replace.yaml

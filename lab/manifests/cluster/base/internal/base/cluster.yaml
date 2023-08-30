@@ -1,0 +1,184 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: root
+spec:
+  clusterNetwork:
+    pods:
+      cidrBlocks:
+        - 10.244.0.0/18
+    services:
+      cidrBlocks:
+        - 10.96.0.0/12
+  controlPlaneRef:
+    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    kind: KubeadmControlPlane
+    name: root
+  infrastructureRef:
+    apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: Metal3Cluster
+    name: root
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: Metal3Cluster
+metadata:
+  name: root
+spec:
+  controlPlaneEndpoint:
+    port: 6443
+  noCloudProvider: true
+---
+apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: KubeadmControlPlane
+metadata:
+  name: root
+spec:
+  kubeadmConfigSpec:
+    initConfiguration:
+      nodeRegistration:
+        criSocket: unix:///var/run/containerd/containerd.sock
+        kubeletExtraArgs:
+          node-labels: metal3.io/uuid={{ ds.meta_data.uuid }}
+        name: "{{ ds.meta_data.name }}"
+        taints:
+          - key: node-role.kubernetes.io/control-plane
+            effect: PreferNoSchedule
+    joinConfiguration:
+      nodeRegistration:
+        criSocket: unix:///var/run/containerd/containerd.sock
+        kubeletExtraArgs:
+          node-labels: metal3.io/uuid={{ ds.meta_data.uuid }}
+        name: "{{ ds.meta_data.name }}"
+        taints:
+          - key: node-role.kubernetes.io/control-plane
+            effect: PreferNoSchedule
+    preKubeadmCommands:
+      - |
+        set -x
+        INIT_CONFIG='/run/kubeadm/kubeadm.yaml'
+        JOIN_CONFIG='/run/kubeadm/kubeadm-join-config.yaml'
+
+        if [ -f "${INIT_CONFIG}" ]; then
+          API_ENDPOINT="$(awk '/controlPlaneEndpoint:/ {print $2}' ${INIT_CONFIG})"
+        elif [ -f "${JOIN_CONFIG}" ]; then
+          API_ENDPOINT="$(awk '/apiServerEndpoint:/ {print $2}' ${JOIN_CONFIG})"
+        else
+          echo "No ${INIT_CONFIG} or ${JOIN_CONFIG} found. Can't detect the node type" >&2
+          exit 1
+        fi
+
+        KUBE_VIP='ghcr.io/kube-vip/kube-vip:v0.5.12'
+        ctr image pull "${KUBE_VIP}"
+        ctr run --rm --net-host "${KUBE_VIP}" vip /kube-vip manifest pod --address "${API_ENDPOINT%%:*}" --controlplane --arp --leaderElection | tee /etc/kubernetes/manifests/kube-vip.yaml
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: Metal3MachineTemplate
+      name: root-controlplane
+    nodeDrainTimeout: 0s
+  replicas: 3
+  rolloutStrategy:
+    rollingUpdate:
+      maxSurge: 1
+    type: RollingUpdate
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: Metal3MachineTemplate
+metadata:
+  name: root-controlplane
+spec:
+  nodeReuse: false
+  template:
+    spec:
+      automatedCleaningMode: metadata
+      dataTemplate:
+        name: root-controlplane-template
+      image:
+        checksumType: sha256
+        format: raw
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  labels:
+    cluster.x-k8s.io/cluster-name: root
+    nodepool: nodepool-0
+  name: root
+spec:
+  clusterName: root
+  replicas: 0
+  selector:
+    matchLabels:
+      cluster.x-k8s.io/cluster-name: root
+      nodepool: nodepool-0
+  template:
+    metadata:
+      labels:
+        cluster.x-k8s.io/cluster-name: root
+        nodepool: nodepool-0
+    spec:
+      bootstrap:
+        configRef:
+          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          kind: KubeadmConfigTemplate
+          name: root-workers
+      clusterName: root
+      infrastructureRef:
+        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        kind: Metal3MachineTemplate
+        name: root-workers
+      nodeDrainTimeout: 0s
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: Metal3MachineTemplate
+metadata:
+  name: root-workers
+spec:
+  nodeReuse: false
+  template:
+    spec:
+      automatedCleaningMode: metadata
+      dataTemplate:
+        name: root-workers-template
+      image:
+        checksumType: sha256
+        format: raw
+---
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+kind: KubeadmConfigTemplate
+metadata:
+  name: root-workers
+spec:
+  template:
+    spec:
+      initConfiguration:
+        nodeRegistration:
+          criSocket: unix:///var/run/containerd/containerd.sock
+      joinConfiguration:
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: metal3.io/uuid={{ ds.meta_data.uuid }}
+          name: "{{ ds.meta_data.name }}"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: Metal3DataTemplate
+metadata:
+  name: root-controlplane-template
+spec:
+  clusterName: root
+  networkData:
+    links:
+      ethernets:
+        - type: "phy"
+          id: "enp1s0"
+          mtu: 1500
+          macAddress:
+            fromHostInterface: "eth0"
+    networks:
+      ipv4DHCP:
+        - id: "baremetal"
+          link: "enp1s0"
+    services:
+      dns:
+        - "1.1.1.1"
+        - "1.0.0.1"

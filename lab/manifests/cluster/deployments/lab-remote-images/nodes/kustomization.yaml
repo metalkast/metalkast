@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - nodes.yaml
+  - secrets.yaml
+
+namespace: capi-clusters
+
+patches:
+  - target:
+      kind: BareMetalHost
+    patch: |-
+      apiVersion: metal3.io/v1alpha1
+      kind: BareMetalHost
+      metadata:
+        name: notImportant
+      spec:
+        bmc:
+          disableCertificateVerification: true

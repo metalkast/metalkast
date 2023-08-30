@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -euo pipefail
+
+DOCKER_REPO=ghcr.io/metalkast
+
+docker build -t ${DOCKER_REPO}/ironic .
+docker push ${DOCKER_REPO}/ironic

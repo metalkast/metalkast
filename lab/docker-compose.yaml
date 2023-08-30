@@ -1,0 +1,21 @@
+---
+version: "3"
+
+services:
+  lab:
+    build:
+      context: container-images/redfish-lab
+    privileged: true
+    volumes:
+      - node-image:/var/www/html
+    depends_on:
+      node-image-init:
+        condition: service_completed_successfully
+  node-image-init:
+    build: ../image-build
+    command: rsync -avzh --delete /virt-customize/output /output
+    volumes:
+      - node-image:/output
+
+volumes:
+  node-image:

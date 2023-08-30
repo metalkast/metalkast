@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - https://github.com/metal3-io/baremetal-operator//config/default?ref=v0.3.1
+  - https://github.com/metal3-io/baremetal-operator//config/namespace?ref=v0.3.1
+
+images:
+- name: quay.io/metal3-io/baremetal-operator
+  newTag: v0.3.1
+
+configMapGenerator:
+  - name: ironic
+    behavior: replace
+    envs:
+      - ironic.env
+
+patches:
+  - target:
+      kind: CustomResourceDefinition
+    # Enables clusterctl move to detect BareMetalHosts
+    patch: |-
+      apiVersion: apiextensions.k8s.io/v1
+      kind: CustomResourceDefinition
+      metadata:
+        name: "not used"
+        # there seems to be some bug with kustomize that adds quoting to null and then results in error on apply
+        creationTimestamp: null
+        labels:
+          clusterctl.cluster.x-k8s.io: ""
+
+namespace: baremetal-operator-system

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+namespace=$(id -u -n)
+
+# Reset docker-compose
+docker compose -p "${namespace}" down
+docker compose -p "${namespace}" build
+docker compose -p "${namespace}" up -d
+
+# Copy manifests
+docker compose -p "${namespace}" exec lab rm -rf /lab
+docker compose -p "${namespace}" exec lab mkdir /lab
+docker compose -p "${namespace}" cp scripts/kast lab:/lab
+docker compose -p "${namespace}" cp manifests lab:/lab
+docker compose -p "${namespace}" cp ../docs/get-started.md lab:/lab
+
+# Install kast bin
+make -C .. clean
+make -C .. build
+docker compose -p "${namespace}" cp ../_out/kast lab:/usr/local/bin
+
+# Run bootstrap
+docker compose -p "${namespace}" exec -w /lab lab ./kast

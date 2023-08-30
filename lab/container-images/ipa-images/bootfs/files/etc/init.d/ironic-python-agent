@@ -1,0 +1,10 @@
+#!/sbin/openrc-run
+
+command="/usr/bin/$SVCNAME"
+command_args="--config-dir /etc/ironic-python-agent.d/"
+command_background=true
+pidfile="/var/run/$SVCNAME.pid"
+
+depend() {
+	need network-online
+}

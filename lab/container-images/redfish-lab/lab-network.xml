@@ -1,0 +1,18 @@
+<network>
+    <name>lab</name>
+    <forward mode='nat'>
+        <nat>
+            <port start='1024' end='65535'/>
+        </nat>
+    </forward>
+    <bridge name='virbr1' stp='on' delay='0'/>
+    <mac address='52:54:00:9f:dc:3b'/>
+    <ip address='192.168.123.1' netmask='255.255.255.0'>
+        <dhcp>
+            <range start='192.168.123.2' end='192.168.123.254'/>
+            <host mac='52:54:00:6c:3c:01' name='vm1' ip='192.168.123.101'/>
+            <host mac='52:54:00:6c:3c:02' name='vm2' ip='192.168.123.102'/>
+            <host mac='52:54:00:6c:3c:03' name='vm3' ip='192.168.123.103'/>
+        </dhcp>
+    </ip>
+</network>

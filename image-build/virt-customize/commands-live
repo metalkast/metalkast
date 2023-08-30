@@ -1,0 +1,9 @@
+run resize.sh
+copy-in ssh-access.sh:/tmp/
+run-command chmod +x /tmp/ssh-access.sh
+run-command /tmp/ssh-access.sh
+delete /tmp/*
+# https://help.ubuntu.com/community/LiveCDCustomizationFromScratch (section: Install packages needed for Live System)
+install casper,ubuntu-standard,laptop-detect,os-prober,network-manager
+# configure network autoconfig on boot
+copy-in 01-network-manager-all.yaml:/etc/netplan/

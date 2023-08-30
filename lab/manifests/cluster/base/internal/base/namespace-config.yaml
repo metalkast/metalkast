@@ -1,0 +1,13 @@
+namespace:
+  - path: spec/infrastructureRef/namespace
+    group: cluster.x-k8s.io
+    kind: Cluster
+    create: true
+  - path: spec/controlPlaneRef/namespace
+    group: cluster.x-k8s.io
+    kind: Cluster
+    create: true
+  - path: spec/machineTemplate/infrastructureRef/namespace
+    group: controlplane.cluster.x-k8s.io
+    kind: KubeadmControlPlane
+    create: true

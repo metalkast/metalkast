@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+commonLabels:
+  app.kubernetes.io/name: ironic
+
+resources:
+  - deployment.yaml
+  - namespace.yaml
+  - loadbalancer-service.yaml
+
+configMapGenerator:
+  - name: ironic-conf
+    files:
+      - ironic.conf
+  - name: ironic-inspector-conf
+    files:
+      - ironic-inspector.conf
+
+namespace: ironic

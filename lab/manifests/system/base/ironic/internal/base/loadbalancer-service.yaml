@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ironic
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+      name: conductor
+    - port: 6385
+      targetPort: 6385
+      name: service-catalog
+    - port: 5050
+      targetPort: 5050
+      name: inspector
+    - port: 8089
+      targetPort: 8089
+      name: json-rpc

@@ -1,0 +1,21 @@
+source:
+  kind: ConfigMap
+  name: k8s-cluster-version
+  fieldPath: data.VERSION
+targets:
+  - select:
+      group: controlplane.cluster.x-k8s.io
+      version: v1beta1
+      kind: KubeadmControlPlane
+    fieldPaths:
+      - spec.version
+    options:
+      create: true
+  - select:
+      group: cluster.x-k8s.io
+      version: v1beta1
+      kind: MachineDeployment
+    fieldPaths:
+      - spec.template.spec.version
+    options:
+      create: true

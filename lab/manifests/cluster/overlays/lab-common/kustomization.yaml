@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - k8s-config.yaml
+
+components:
+  - ../../base
+
+patches:
+  - target:
+      kind: KubeadmControlPlane
+    patch: |-
+      - op: add
+        path: /spec/kubeadmConfigSpec/preKubeadmCommands/-
+        value: |
+          apt-get -yq update
+          apt install -yq openssh-server
+          systemctl enable ssh
+          sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+          systemctl restart ssh
+          useradd bootstrap -m -p $(openssl passwd bootstrap) -G sudo
+          echo 'bootstrap ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/bootstrap

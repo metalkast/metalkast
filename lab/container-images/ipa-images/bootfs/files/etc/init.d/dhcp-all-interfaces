@@ -1,0 +1,31 @@
+#!/sbin/openrc-run
+
+description="Run dhcp on all interfaces"
+
+depend()
+{
+	before net
+	need sysfs
+}
+
+start ()
+{
+	local rc ifpath iftype ifname
+
+	rc=1
+	ebegin "Enabling dhcp on all ethernet interfaces"
+	for ifpath in /sys/class/net/*; do
+		[ -h "${ifpath}" ] || continue
+		read iftype < ${ifpath}/type
+		if [ "$iftype" = "1" ];then
+			ifname=${ifpath##*/}
+			cat <<-EOF >> /etc/network/interfaces
+
+				auto ${ifname}
+				iface ${ifname} inet dhcp
+			EOF
+			rc=0
+		fi
+	done
+	eend $rc "No ethernet interfaces"
+}

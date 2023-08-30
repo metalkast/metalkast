@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -eEuo pipefail
+
+DOCKER_REPO=ghcr.io/metalkast
+
+for dir in */; do
+  image="${DOCKER_REPO}/ipa-images-$(basename $dir)"
+  docker build -t "${image}" "${dir}"
+  docker push "${image}"
+done

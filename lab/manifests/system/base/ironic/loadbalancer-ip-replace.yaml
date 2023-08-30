@@ -1,0 +1,13 @@
+source:
+  kind: ConfigMap
+  name: ironic-ip
+  namespace: ironic
+  fieldPath: data.OS_DEFAULT__HOST
+targets:
+  - select:
+      kind: Service
+      name: ironic
+    fieldPaths:
+      - metadata.annotations.[kube-vip.io/loadbalancerIPs]
+    options:
+      create: true

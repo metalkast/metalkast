@@ -1,0 +1,29 @@
+#!/sbin/openrc-run
+
+description="Delays until at least one nameserver is routable"
+
+depend()
+{
+	after modules net
+	provide network-online
+}
+
+start ()
+{
+	local nameserver rc
+
+	ebegin "Waiting for an routable nameserver"
+	rc=1
+	timeout=${timeout:-120}
+	while [ $timeout -gt 0 ]; do
+		for nameserver in $(awk '/^nameserver/ {print $2}' /etc/resolv.conf 2>/dev/null); do
+		ip route get ${nameserver} >/dev/null 2>&1
+		rc=$?
+		[ $rc -eq 0 ] && break
+	done
+	[ $rc -eq 0 ] && break
+	sleep 1
+	: $((timeout -= 1))
+	done
+	eend $rc "No routable nameservers"
+}

@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ironic
+spec:
+  # It's unlikely that Ironic will work with several replicas running as it holds some state.
+  replicas: 1
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      volumes:
+        - name: ironic-shared
+          emptyDir: {}
+        - name: ironic-conf
+          configMap:
+            name: ironic-conf
+        - name: ironic-inspector-conf
+          configMap:
+            name: ironic-inspector-conf
+      initContainers:
+        - name: ipa-images-bootfs
+          image: ghcr.io/metalkast/ipa-images-bootfs
+          command:
+            - sh
+            - "-x"
+            - "-c"
+          args:
+            - |
+              mkdir -p /shared/html
+              cp /tmp/linux-kernel/boot/vmlinuz-lts /shared/html/ironic-python-agent.kernel
+              cp /tmp/ironic-python-agent.initramfs /shared/html/
+          volumeMounts:
+            - mountPath: "/shared"
+              name: ironic-shared
+        - name: ipa-images-uefi
+          image: ghcr.io/metalkast/ipa-images-uefi
+          command:
+            - sh
+            - "-x"
+            - "-c"
+          args:
+            - |
+              mkdir -p /shared/html
+              cp /tmp/esp.img /shared/html/uefi_esp.img
+          volumeMounts:
+            - mountPath: "/shared"
+              name: ironic-shared
+
+        - name: ironic-db-sync
+          image: ghcr.io/metalkast/ironic
+          command:
+            - sh
+            - -x
+            - -e
+            - -c
+          args:
+            - >
+              ironic-dbsync --config-file=/etc/defaults/ironic.conf --config-dir=/etc/ironic/ create_schema ||
+              ironic-dbsync --config-file=/etc/defaults/ironic.conf --config-dir=/etc/ironic/ upgrade
+          volumeMounts:
+            - mountPath: /shared
+              name: ironic-shared
+            - mountPath: /etc/ironic
+              name: ironic-conf
+      containers:
+        - name: ironic-conductor
+          image: ghcr.io/metalkast/ironic
+          envFrom:
+            - configMapRef:
+                name: ironic-ip
+          command:
+            - ironic-conductor
+          args:
+            - --config-file=/etc/defaults/ironic.conf
+            - --config-dir=/etc/ironic/
+          volumeMounts:
+            - mountPath: /shared
+              name: ironic-shared
+            - mountPath: /etc/ironic
+              name: ironic-conf
+        - name: ironic-api
+          image: ghcr.io/metalkast/ironic
+          envFrom:
+            - configMapRef:
+                name: ironic-ip
+          command:
+            - ironic-api
+          args:
+            - --config-file=/etc/defaults/ironic.conf
+            - --config-dir=/etc/ironic/
+          volumeMounts:
+            - mountPath: /shared
+              name: ironic-shared
+            - mountPath: /etc/ironic
+              name: ironic-conf
+        - name: ironic-inspector
+          image: ghcr.io/metalkast/ironic
+          envFrom:
+            - configMapRef:
+                name: ironic-ip
+          command:
+            - sh
+            - -c
+          args:
+            - |
+              ironic-inspector-dbsync --config-file=/etc/defaults/ironic-inspector.conf --config-dir=/etc/ironic-inspector/ upgrade
+              ironic-inspector --config-file=/etc/defaults/ironic-inspector.conf --config-dir=/etc/ironic-inspector/
+          volumeMounts:
+            - mountPath: /etc/ironic-inspector
+              name: ironic-inspector-conf
+        - name: httpd
+          image: httpd:2.4.46
+          volumeMounts:
+            - mountPath: /usr/local/apache2/htdocs
+              name: ironic-shared
+              subPath: html
+              readOnly: true
