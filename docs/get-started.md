@@ -7,7 +7,7 @@ This guide will help you deploying a basic Kubernetes cluster on your baremetal 
 You can install `kast` binary from source with Go toolchain.
 
 ```shell
-go install github.com/metalkast/metalkast/cmd/kast/kast@latest
+go install github.com/metalkast/metalkast/cmd/kast@latest
 ```
 
 ## Install ipmitool
