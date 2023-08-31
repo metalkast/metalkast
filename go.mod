@@ -2,15 +2,6 @@ module github.com/metalkast/metalkast
 
 go 1.20
 
-// Temporary
-// TODO: Remove once the new version of metal3 is released
-replace (
-	// This needs to be merged into new version https://github.com/metal3-io/cluster-api-provider-metal3/pull/1079
-	github.com/metal3-io/cluster-api-provider-metal3/api => github.com/Nordix/cluster-api-provider-metal3/api v0.0.0-20230807203627-edfd13634cad
-	github.com/metal3-io/ip-address-manager => github.com/metal3-io/ip-address-manager v1.4.1-0.20230801091326-5993596f9bb7
-	github.com/metal3-io/ip-address-manager/api => github.com/metal3-io/ip-address-manager/api v1.4.1-0.20230801091326-5993596f9bb7
-)
-
 require (
 	github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2
 	github.com/charmbracelet/lipgloss v0.7.1
@@ -23,14 +14,14 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/stmcginnis/gofish v0.14.0
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/crypto v0.11.0
+	golang.org/x/crypto v0.12.0
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 	golang.org/x/sync v0.2.0
-	k8s.io/api v0.27.2
+	k8s.io/api v0.27.5
 	k8s.io/apimachinery v0.28.0-alpha.0
-	k8s.io/client-go v0.27.2
-	sigs.k8s.io/cluster-api v1.5.0
-	sigs.k8s.io/controller-runtime v0.15.1
+	k8s.io/client-go v0.27.5
+	sigs.k8s.io/cluster-api v1.5.1
+	sigs.k8s.io/controller-runtime v0.15.2
 	sigs.k8s.io/kustomize/api v0.13.4
 	sigs.k8s.io/kustomize/kustomize/v5 v5.0.3
 	sigs.k8s.io/kustomize/kyaml v0.14.2
@@ -125,7 +116,7 @@ require (
 	github.com/charmbracelet/bubbles v0.16.1
 	github.com/charmbracelet/bubbletea v0.24.2
 	github.com/coredns/caddy v1.1.0 // indirect
-	github.com/coredns/corefile-migration v1.0.20 // indirect
+	github.com/coredns/corefile-migration v1.0.21 // indirect
 	github.com/creack/pty v1.1.17 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
@@ -161,8 +152,8 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/metal3-io/baremetal-operator/pkg/hardwareutils v0.2.0 // indirect
-	github.com/metal3-io/cluster-api-provider-metal3/api v1.4.1-0.20230807132633-d084861eaf35
-	github.com/metal3-io/ip-address-manager/api v1.4.1 // indirect
+	github.com/metal3-io/cluster-api-provider-metal3/api v1.5.0
+	github.com/metal3-io/ip-address-manager/api v1.5.0 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
@@ -191,11 +182,11 @@ require (
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.mozilla.org/sops/v3 v3.7.3
 	go.starlark.net v0.0.0-20200306205701-8dd3e2ee1dd5 // indirect
-	golang.org/x/net v0.12.0 // indirect
+	golang.org/x/net v0.14.0 // indirect
 	golang.org/x/oauth2 v0.10.0 // indirect
-	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/term v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
+	golang.org/x/sys v0.11.0 // indirect
+	golang.org/x/term v0.11.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
