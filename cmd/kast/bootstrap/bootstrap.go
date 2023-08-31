@@ -129,8 +129,15 @@ func bootstrapClusterConfigFromManifests(manifests manifestival.Manifest) (*boot
 		return nil, fmt.Errorf("failed to parse Secret (%s): %w", secretManifest[0].GetName(), err)
 	}
 
-	setup.bootstrapNodeOptions.RedfishUsername = string(secret.Data["username"])
-	setup.bootstrapNodeOptions.RedfishPassword = string(secret.Data["password"])
+	var ok bool
+	setup.bootstrapNodeOptions.RedfishUsername, ok = secret.StringData["username"]
+	if !ok {
+		setup.bootstrapNodeOptions.RedfishUsername = string(secret.Data["username"])
+	}
+	setup.bootstrapNodeOptions.RedfishPassword, ok = secret.StringData["password"]
+	if !ok {
+		setup.bootstrapNodeOptions.RedfishPassword = string(secret.Data["password"])
+	}
 
 	kubeadmControlPlaneMachineTemplateManifests := manifests.Filter(manifestival.All(
 		manifestival.ByGVK(kubeadmControlPlane.Spec.MachineTemplate.InfrastructureRef.GroupVersionKind()),

@@ -36,9 +36,9 @@ func TestBootstrapClusterConfigFromManifests(t *testing.T) {
 				clusterNamespace: "clusters-test-ns",
 				bootstrapClusterManifests: testutil.TestManifests(t, manifestival.Reader(strings.NewReader(`
 apiVersion: v1
-data:
-  password: cGFzc3dvcmQ=
-  username: YWRtaW4=
+stringData:
+  password: password
+  username: admin
 kind: Secret
 metadata:
   name: redfish-creds-k8s-node-1
@@ -122,9 +122,9 @@ spec:
 			},
 			manifests: testutil.TestManifests(t, manifestival.Reader(strings.NewReader(`
 apiVersion: v1
-data:
-  password: cGFzc3dvcmQ=
-  username: YWRtaW4=
+stringData:
+  password: password
+  username: admin
 kind: Secret
 metadata:
   name: redfish-creds-k8s-node-1
