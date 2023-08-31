@@ -32,7 +32,6 @@ type Bootstrap struct {
 	manifests                     manifestival.Manifest
 	targetClusterPreMoveManifests manifestival.Manifest
 	pollInterval                  time.Duration
-	clusterNamespace              string
 }
 
 func FromManifests(manifestsPaths []string) (*Bootstrap, error) {
@@ -222,7 +221,7 @@ func (b *Bootstrap) Run(options BootstrapOptions) error {
 
 	log.Log.Info("Moving the cluster")
 	wait.PollUntilContextCancel(context.TODO(), b.pollInterval, true, func(ctx context.Context) (done bool, err error) {
-		err = bootstrapCluster.Move(targetCluster, b.clusterNamespace)
+		err = bootstrapCluster.Move(targetCluster, b.bootstrapClusterConfig.clusterNamespace)
 		if err != nil {
 			log.Log.V(1).Error(err, "Failed to move the cluster")
 			log.Log.V(1).Info("Retrying to move the cluster")
