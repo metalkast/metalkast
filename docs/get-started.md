@@ -31,7 +31,12 @@ apt-get install install -y ipmitool
 To use kast, you'll first need to prepare your cluster's manifests. You can use the ones used for development as a starting point.
 
 ```shell
-kustomize localize https://github.com/metalkast/metalkast//lab/manifests
+kustomize localize https://github.com/metalkast/metalkast//lab/manifests/system/deployments/lab?ref=main
+mv localized-lab-fix-localize/lab/manifests .
+rm -rf localized-lab-main/
+kustomize localize https://github.com/metalkast/metalkast//lab/manifests/cluster/deployments/lab?ref=main
+mv localized-lab-fix-localize/lab/manifests/cluster/ ./manifests/
+rm -rf localized-lab-main/
 ```
 
 To use metalkast prebuilt Kubernetes cluster images, you can include preconfigured `k8s-cluster-version` ConfigMap.
