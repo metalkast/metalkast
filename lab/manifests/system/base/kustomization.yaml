@@ -6,7 +6,7 @@ resources:
   - cluster-api
   - flannel
   - kubevip
+  - baremetal-operator
 
 components:
-  - baremetal-operator
   - ironic

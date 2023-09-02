@@ -49,11 +49,7 @@ spec:
 
         - name: ironic-db-sync
           image: ghcr.io/metalkast/ironic
-          command:
-            - sh
-            - -x
-            - -e
-            - -c
+          command: [sh, -x, -e, -c]
           args:
             - >
               ironic-dbsync --config-file=/etc/defaults/ironic.conf --config-dir=/etc/ironic/ create_schema ||
@@ -64,28 +60,13 @@ spec:
             - mountPath: /etc/ironic
               name: ironic-conf
       containers:
-        - name: ironic-conductor
+        - name: ironic
           image: ghcr.io/metalkast/ironic
           envFrom:
             - configMapRef:
                 name: ironic-ip
           command:
-            - ironic-conductor
-          args:
-            - --config-file=/etc/defaults/ironic.conf
-            - --config-dir=/etc/ironic/
-          volumeMounts:
-            - mountPath: /shared
-              name: ironic-shared
-            - mountPath: /etc/ironic
-              name: ironic-conf
-        - name: ironic-api
-          image: ghcr.io/metalkast/ironic
-          envFrom:
-            - configMapRef:
-                name: ironic-ip
-          command:
-            - ironic-api
+            - ironic
           args:
             - --config-file=/etc/defaults/ironic.conf
             - --config-dir=/etc/ironic/
