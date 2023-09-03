@@ -1,0 +1,74 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ironic-deploy
+  annotations:
+    cert-manager.io/issuer: selfsigned-issuer
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  tls:
+  - secretName: ironic-deploy-tls
+    hosts:
+    - ironic-deploy.DOMAIN
+  rules:
+  - host: ironic-deploy.DOMAIN
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ironic
+            port:
+              number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ironic
+  annotations:
+    cert-manager.io/issuer: selfsigned-issuer
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  tls:
+  - secretName: ironic-tls
+    hosts:
+    - ironic.DOMAIN
+  rules:
+  - host: ironic.DOMAIN
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ironic
+            port:
+              number: 6385
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ironic-inspector
+  annotations:
+    cert-manager.io/issuer: selfsigned-issuer
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  tls:
+  - secretName: ironic-inspector-tls
+    hosts:
+    - ironic-inspector.DOMAIN
+  rules:
+  - host: ironic-inspector.DOMAIN
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ironic
+            port:
+              number: 5050
