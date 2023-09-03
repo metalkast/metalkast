@@ -20,13 +20,12 @@ configMapGenerator:
       - ironic-inspector.conf
   - name: ironic-conf-overrides
     literals:
-      - OS_CONDUCTOR__BOOTLOADER=HTTP_URL/uefi_esp.img
-      - OS_INSPECTOR__ENDPOINT_OVERRIDE=http://ironic-inspector.DOMAIN
-      - OS_INSPECTOR__CALLBACK_ENDPOINT_OVERRIDE=http://ironic-inspector.DOMAIN
-      - OS_DEPLOY__HTTP_URL=http://ironic-deploy.DOMAIN
-      - OS_SERVICE_CATALOG__ENDPOINT_OVERRIDE=http://ironic.DOMAIN
+      - OS_INSPECTOR__ENDPOINT_OVERRIDE=https://ironic-inspector.DOMAIN
+      - OS_INSPECTOR__CALLBACK_ENDPOINT_OVERRIDE=https://ironic-inspector.DOMAIN
+      - OS_DEPLOY__HTTP_URL=https://ironic-deploy.DOMAIN
+      - OS_SERVICE_CATALOG__ENDPOINT_OVERRIDE=https://ironic.DOMAIN
   - name: ironic-inspector-conf-overrides
     literals:
-      - OS_IRONIC__ENDPOINT_OVERRIDE=http://ironic.DOMAIN
+      - OS_IRONIC__ENDPOINT_OVERRIDE=https://ironic.DOMAIN
 
 namespace: ironic

@@ -6,4 +6,3 @@ resources:
 
 replacements:
   - path: ingress-host-replace.yaml
-  - path: bootloader-replace.yaml

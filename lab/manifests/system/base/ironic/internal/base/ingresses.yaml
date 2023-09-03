@@ -4,7 +4,6 @@ metadata:
   name: ironic-deploy
   annotations:
     cert-manager.io/issuer: selfsigned-issuer
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
   tls:
@@ -29,7 +28,6 @@ metadata:
   name: ironic
   annotations:
     cert-manager.io/issuer: selfsigned-issuer
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
   tls:
@@ -54,7 +52,6 @@ metadata:
   name: ironic-inspector
   annotations:
     cert-manager.io/issuer: selfsigned-issuer
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
   tls:
