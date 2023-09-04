@@ -9,9 +9,9 @@ spec:
   tls:
   - secretName: ironic-deploy-tls
     hosts:
-    - ironic-deploy.DOMAIN
+    - ironic-deploy.__DOMAIN__
   rules:
-  - host: ironic-deploy.DOMAIN
+  - host: ironic-deploy.__DOMAIN__
     http:
       paths:
       - path: /
@@ -33,9 +33,9 @@ spec:
   tls:
   - secretName: ironic-tls
     hosts:
-    - ironic.DOMAIN
+    - ironic.__DOMAIN__
   rules:
-  - host: ironic.DOMAIN
+  - host: ironic.__DOMAIN__
     http:
       paths:
       - path: /
@@ -57,9 +57,9 @@ spec:
   tls:
   - secretName: ironic-inspector-tls
     hosts:
-    - ironic-inspector.DOMAIN
+    - ironic-inspector.__DOMAIN__
   rules:
-  - host: ironic-inspector.DOMAIN
+  - host: ironic-inspector.__DOMAIN__
     http:
       paths:
       - path: /
