@@ -6,3 +6,4 @@ resources:
 
 components:
   - ../../base
+  - ../../base/ironic/components/insecure

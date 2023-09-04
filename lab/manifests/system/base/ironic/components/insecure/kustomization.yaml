@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+configMapGenerator:
+  - name: ironic-conf-overrides
+    namespace: ironic
+    behavior: merge
+    literals:
+      - OS_INSPECTOR__INSECURE=true
+      - OS_INSPECTOR__EXTRA_KERNEL_PARAMS=ipa-insecure=1
+      - OS_SERVICE_CATALOG__INSECURE=true
+      - OS_REDFISH__KERNEL_APPEND_PARAMS=ipa-insecure=1
+
+  - name: ironic-inspector-conf-overrides
+    namespace: ironic
+    behavior: merge
+    literals:
+      - OS_IRONIC__INSECURE=true
