@@ -5,4 +5,5 @@ resources:
   - internal/base
 
 replacements:
-  - path: loadbalancer-ip-replace.yaml
+  - path: ingress-host-replace.yaml
+  - path: bootloader-replace.yaml

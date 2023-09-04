@@ -64,7 +64,7 @@ spec:
           image: ghcr.io/metalkast/ironic
           envFrom:
             - configMapRef:
-                name: ironic-ip
+                name: ironic-conf-overrides
           command:
             - ironic
           args:
@@ -79,7 +79,7 @@ spec:
           image: ghcr.io/metalkast/ironic
           envFrom:
             - configMapRef:
-                name: ironic-ip
+                name: ironic-inspector-conf-overrides
           command:
             - sh
             - -c

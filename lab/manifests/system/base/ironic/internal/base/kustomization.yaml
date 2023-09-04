@@ -7,7 +7,9 @@ commonLabels:
 resources:
   - deployment.yaml
   - namespace.yaml
-  - loadbalancer-service.yaml
+  - service.yaml
+  - issuer.yaml
+  - ingresses.yaml
 
 configMapGenerator:
   - name: ironic-conf
@@ -16,5 +18,15 @@ configMapGenerator:
   - name: ironic-inspector-conf
     files:
       - ironic-inspector.conf
+  - name: ironic-conf-overrides
+    literals:
+      - OS_CONDUCTOR__BOOTLOADER=HTTP_URL/uefi_esp.img
+      - OS_INSPECTOR__ENDPOINT_OVERRIDE=http://ironic-inspector.__DOMAIN__
+      - OS_INSPECTOR__CALLBACK_ENDPOINT_OVERRIDE=http://ironic-inspector.__DOMAIN__
+      - OS_DEPLOY__HTTP_URL=http://ironic-deploy.__DOMAIN__
+      - OS_SERVICE_CATALOG__ENDPOINT_OVERRIDE=http://ironic.__DOMAIN__
+  - name: ironic-inspector-conf-overrides
+    literals:
+      - OS_IRONIC__ENDPOINT_OVERRIDE=http://ironic.__DOMAIN__
 
 namespace: ironic

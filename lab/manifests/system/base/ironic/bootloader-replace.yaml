@@ -1,0 +1,13 @@
+source:
+  kind: ConfigMap
+  name: ironic-conf-overrides
+  fieldPath: data.OS_DEPLOY__HTTP_URL
+targets:
+  - select:
+      kind: ConfigMap
+      name: ironic-conf-overrides
+    fieldPaths:
+      - data.OS_CONDUCTOR__BOOTLOADER
+    options:
+      delimiter: "/"
+      index: 0

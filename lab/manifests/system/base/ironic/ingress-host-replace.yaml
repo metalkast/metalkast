@@ -1,0 +1,33 @@
+source:
+  kind: ConfigMap
+  name: nginx-ingress-config
+  fieldPath: data.domain
+targets:
+  - select:
+      kind: Ingress
+      namespace: ironic
+    fieldPaths:
+      - spec.tls.0.hosts.0
+      - spec.rules.0.host
+    options:
+      delimiter: "."
+      index: 1
+  - select:
+      kind: ConfigMap
+      name: ironic-conf-overrides
+    fieldPaths:
+      - data.OS_INSPECTOR__ENDPOINT_OVERRIDE
+      - data.OS_INSPECTOR__CALLBACK_ENDPOINT_OVERRIDE
+      - data.OS_DEPLOY__HTTP_URL
+      - data.OS_SERVICE_CATALOG__ENDPOINT_OVERRIDE
+    options:
+      delimiter: "."
+      index: 1
+  - select:
+      kind: ConfigMap
+      name: ironic-inspector-conf-overrides
+    fieldPaths:
+      - data.OS_IRONIC__ENDPOINT_OVERRIDE
+    options:
+      delimiter: "."
+      index: 1

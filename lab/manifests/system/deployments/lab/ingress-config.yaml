@@ -3,7 +3,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ironic-ip
-  namespace: ironic
+  name: nginx-ingress-config
+  annotations:
+    config.kubernetes.io/local-config: "true"
 data:
-  OS_DEFAULT__HOST: "192.168.123.105"
+  ip: "192.168.123.105"
+  domain: "192.168.123.105.nip.io"
