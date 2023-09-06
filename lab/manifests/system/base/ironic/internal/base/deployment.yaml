@@ -1,3 +1,32 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ironic
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: ironic-credentials
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "get", "patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["list", "get", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ironic-credentials
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ironic-credentials
+subjects:
+  - kind: ServiceAccount
+    name: ironic
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -9,8 +38,11 @@ spec:
     type: Recreate
   template:
     spec:
+      serviceAccountName: ironic
       volumes:
         - name: ironic-shared
+          emptyDir: {}
+        - name: ironic-credentials
           emptyDir: {}
         - name: ironic-conf
           configMap:
@@ -59,37 +91,61 @@ spec:
               name: ironic-shared
             - mountPath: /etc/ironic
               name: ironic-conf
+
+        - name: init-credentials
+          image: alpine/k8s:1.27.2
+          command: [sh, -c]
+          args:
+            - |
+              apk add apache2-utils openssl
+
+              username=admin
+              password=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 64)
+              echo "$username" > /credentials/username
+              echo "$password" >  /credentials/password
+              htpasswd -b -c -B /credentials/htpasswd "$username" "$password"
+
+              kubectl create secret generic ironic-credentials --from-file=/credentials --dry-run=client -o yaml | kubectl apply -f -
+              kubectl delete pods -l app=baremetal-operator
+          volumeMounts:
+            - mountPath: /credentials
+              name: ironic-credentials
       containers:
         - name: ironic
           image: ghcr.io/metalkast/ironic
           envFrom:
             - configMapRef:
                 name: ironic-conf-overrides
-          command:
-            - ironic
+          command: [sh, -c]
           args:
-            - --config-file=/etc/defaults/ironic.conf
-            - --config-dir=/etc/ironic/
+            - |
+              export OS_INSPECTOR__USERNAME=$(cat /etc/ironic-credentials/username)
+              export OS_INSPECTOR__PASSWORD=$(cat /etc/ironic-credentials/password)
+              ironic --config-file=/etc/defaults/ironic.conf --config-dir=/etc/ironic/
           volumeMounts:
             - mountPath: /shared
               name: ironic-shared
             - mountPath: /etc/ironic
               name: ironic-conf
+            - mountPath: /etc/ironic-credentials
+              name: ironic-credentials
         - name: ironic-inspector
           image: ghcr.io/metalkast/ironic
           envFrom:
             - configMapRef:
                 name: ironic-inspector-conf-overrides
-          command:
-            - sh
-            - -c
+          command: [sh, -c]
           args:
             - |
               ironic-inspector-dbsync --config-file=/etc/defaults/ironic-inspector.conf --config-dir=/etc/ironic-inspector/ upgrade
+              export OS_IRONIC__USERNAME=$(cat /etc/ironic-credentials/username)
+              export OS_IRONIC__PASSWORD=$(cat /etc/ironic-credentials/password)
               ironic-inspector --config-file=/etc/defaults/ironic-inspector.conf --config-dir=/etc/ironic-inspector/
           volumeMounts:
             - mountPath: /etc/ironic-inspector
               name: ironic-inspector-conf
+            - mountPath: /etc/ironic-credentials
+              name: ironic-credentials
         - name: httpd
           image: httpd:2.4.46
           volumeMounts:
