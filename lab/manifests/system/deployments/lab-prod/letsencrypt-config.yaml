@@ -1,0 +1,10 @@
+# TODO: Convert to configMapGenerator when kustomize upgraded to v5.1.0+.
+# Current version of kustomize runs components before configMapGenerator
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: letsencrypt-config
+  annotations:
+    config.kubernetes.io/local-config: "true"
+data:
+  email: "letsencrypt@metalkast.io"

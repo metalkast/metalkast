@@ -1,0 +1,11 @@
+# TODO: Convert to configMapGenerator when kustomize upgraded to v5.1.0+.
+# Current version of kustomize runs components before configMapGenerator
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-ingress-config
+  annotations:
+    config.kubernetes.io/local-config: "true"
+data:
+  ip: "192.168.123.105"
+  domain: "lab.metalkast.io"

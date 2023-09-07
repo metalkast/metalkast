@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - issuer.yaml
+
+replacements:
+- source:
+    kind: ConfigMap
+    name: letsencrypt-config
+    fieldPath: data.email
+  targets:
+  - select:
+      kind: ClusterIssuer
+      name: ingress-issuer
+    fieldPaths:
+    - spec.acme.email
+    options:
+      create: true

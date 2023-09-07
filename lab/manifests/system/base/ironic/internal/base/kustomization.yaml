@@ -8,7 +8,6 @@ resources:
   - deployment.yaml
   - namespace.yaml
   - service.yaml
-  - issuer.yaml
   - ingresses.yaml
 
 configMapGenerator:
