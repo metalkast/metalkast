@@ -9,6 +9,7 @@ resources:
   - service.yaml
   - issuer.yaml
   - ingresses.yaml
+  - init-credentials-job.yaml
 
 configMapGenerator:
   - name: ironic-conf
