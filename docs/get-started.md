@@ -37,7 +37,9 @@ To use metalkast prebuilt Kubernetes cluster images, you can include preconfigur
 
 ## Configure hosts
 
-Create secret(s) with Redfish URLs of the hosts you want to join the cluster and Redfish login credentials. Make sure to include the secrets in cluster's manifests.
+Create secret(s) with [`metalkast.io/redfish-urls`](/annotations#metalkast-io-redfish-urls) annotation
+set to Redfish URLs of the hosts you want to join the cluster and Redfish login credentials.
+Make sure to include the secrets in cluster's manifests.
 
 **Example:**
 
