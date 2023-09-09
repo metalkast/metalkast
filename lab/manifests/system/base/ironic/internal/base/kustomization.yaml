@@ -6,10 +6,10 @@ commonLabels:
 
 resources:
   - deployment.yaml
-  - namespace.yaml
   - service.yaml
   - issuer.yaml
   - ingresses.yaml
+  - init-credentials-job.yaml
 
 configMapGenerator:
   - name: ironic-conf
@@ -28,4 +28,4 @@ configMapGenerator:
     literals:
       - OS_IRONIC__ENDPOINT_OVERRIDE=https://ironic.__DOMAIN__
 
-namespace: ironic
+namespace: baremetal-operator-system

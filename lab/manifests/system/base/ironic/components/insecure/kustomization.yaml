@@ -3,7 +3,7 @@ kind: Component
 
 configMapGenerator:
   - name: ironic-conf-overrides
-    namespace: ironic
+    namespace: baremetal-operator-system
     behavior: merge
     literals:
       - OS_INSPECTOR__INSECURE=true
@@ -12,7 +12,7 @@ configMapGenerator:
       - OS_REDFISH__KERNEL_APPEND_PARAMS=ipa-insecure=1
 
   - name: ironic-inspector-conf-overrides
-    namespace: ironic
+    namespace: baremetal-operator-system
     behavior: merge
     literals:
       - OS_IRONIC__INSECURE=true
