@@ -194,3 +194,23 @@ type: Opaque
 	assert.NoError(t, err)
 	assert.Equal(t, want, string(result))
 }
+
+func TestBuildHelm(t *testing.T) {
+	testDir := t.TempDir()
+	err := os.WriteFile(
+		path.Join(testDir, "kustomization.yaml"),
+		[]byte(`
+helmCharts:
+- name: kube-prometheus-stack
+  includeCRDs: false
+  releaseName: prometheus
+  version: 50.3.1
+  repo: https://prometheus-community.github.io/helm-charts
+    `),
+		0644,
+	)
+	assert.NoError(t, err)
+
+	_, err = Build(testDir)
+	assert.NoError(t, err)
+}

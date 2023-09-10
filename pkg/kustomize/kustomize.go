@@ -14,6 +14,8 @@ import (
 
 func Build(path string) ([]byte, error) {
 	options := build.HonorKustomizeFlags(krusty.MakeDefaultOptions(), (&cobra.Command{}).Flags())
+	options.PluginConfig.HelmConfig.Enabled = true
+	options.PluginConfig.HelmConfig.Command = "helm"
 	k := krusty.MakeKustomizer(
 		options,
 	)
