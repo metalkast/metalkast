@@ -6477,7 +6477,7 @@ spec:
         - --bootstrap-token-ttl=15m
         command:
         - /manager
-        image: registry.k8s.io/cluster-api/kubeadm-bootstrap-controller:v1.5.0
+        image: registry.k8s.io/cluster-api/kubeadm-bootstrap-controller:v1.5.2
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
