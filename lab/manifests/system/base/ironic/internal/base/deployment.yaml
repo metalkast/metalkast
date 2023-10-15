@@ -12,6 +12,9 @@ spec:
       volumes:
         - name: ironic-shared
           emptyDir: {}
+        - name: ironic-credentials
+          secret:
+            secretName: ironic-credentials
         - name: ironic-conf
           configMap:
             name: ironic-conf
@@ -65,8 +68,18 @@ spec:
           envFrom:
             - configMapRef:
                 name: ironic-conf-overrides
-          command:
-            - ironic
+          env:
+            - name: OS_INSPECTOR__USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ironic-credentials
+                  key: username
+            - name: OS_INSPECTOR__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ironic-credentials
+                  key: password
+          command: [ironic]
           args:
             - --config-file=/etc/defaults/ironic.conf
             - --config-dir=/etc/ironic/
@@ -75,14 +88,25 @@ spec:
               name: ironic-shared
             - mountPath: /etc/ironic
               name: ironic-conf
+            - mountPath: /etc/ironic-credentials
+              name: ironic-credentials
         - name: ironic-inspector
           image: ghcr.io/metalkast/ironic
           envFrom:
             - configMapRef:
                 name: ironic-inspector-conf-overrides
-          command:
-            - sh
-            - -c
+          env:
+            - name: OS_IRONIC__USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ironic-credentials
+                  key: username
+            - name: OS_IRONIC__PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ironic-credentials
+                  key: password
+          command: [sh, -c]
           args:
             - |
               ironic-inspector-dbsync --config-file=/etc/defaults/ironic-inspector.conf --config-dir=/etc/ironic-inspector/ upgrade
@@ -90,6 +114,8 @@ spec:
           volumeMounts:
             - mountPath: /etc/ironic-inspector
               name: ironic-inspector-conf
+            - mountPath: /etc/ironic-credentials
+              name: ironic-credentials
         - name: httpd
           image: httpd:2.4.46
           volumeMounts:

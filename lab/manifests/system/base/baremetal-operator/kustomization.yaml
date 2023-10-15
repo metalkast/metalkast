@@ -28,5 +28,9 @@ patches:
         creationTimestamp: null
         labels:
           clusterctl.cluster.x-k8s.io: ""
+  - path: basic-auth-patch.yaml
+
+commonLabels:
+  app: baremetal-operator
 
 namespace: baremetal-operator-system

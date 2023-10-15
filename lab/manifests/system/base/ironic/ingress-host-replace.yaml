@@ -5,7 +5,7 @@ source:
 targets:
   - select:
       kind: Ingress
-      namespace: ironic
+      namespace: baremetal-operator-system
     fieldPaths:
       - spec.tls.0.hosts.0
       - spec.rules.0.host

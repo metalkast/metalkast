@@ -221,6 +221,15 @@ func (b *Bootstrap) Run(options BootstrapOptions) error {
 		return fmt.Errorf("failed to initialize target cluster client: %w", err)
 	}
 
+	log.Log.Info("Creating target cluster")
+	timeout := time.Hour
+	err = wait.PollUntilContextTimeout(context.TODO(), time.Second*10, timeout, true, func(ctx context.Context) (bool, error) {
+		return nil == targetCluster.List(ctx, &corev1.NodeList{}), nil
+	})
+	if err != nil {
+		return fmt.Errorf("timed out after %v waiting for target cluster to be created: %w", timeout, err)
+	}
+
 	log.Log.Info("Applying initial manifests to target cluster")
 	if err := targetCluster.Applier.ApplyManifest(b.targetClusterPreMoveManifests); err != nil {
 		return fmt.Errorf("failed to apply pre-move manifests to target cluster: %w", err)
