@@ -3,8 +3,9 @@ kind: Kustomization
 
 resources:
   - ingress-config.yaml
+  - letsencrypt-config.yaml
+  - cloudflare-secret.yaml
 
 components:
   - ../../base
-  - ../../base/ironic/components/insecure
-  - ../../base/nginx-ingress/components/issuers/self-signed
+  - ../../base/nginx-ingress/components/issuers/letsencrypt-cloudflare

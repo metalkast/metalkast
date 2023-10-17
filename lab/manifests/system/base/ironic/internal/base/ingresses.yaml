@@ -3,7 +3,7 @@ kind: Ingress
 metadata:
   name: ironic-deploy
   annotations:
-    cert-manager.io/issuer: selfsigned-issuer
+    cert-manager.io/cluster-issuer: ingress-issuer
 spec:
   ingressClassName: nginx
   tls:
@@ -27,7 +27,7 @@ kind: Ingress
 metadata:
   name: ironic
   annotations:
-    cert-manager.io/issuer: selfsigned-issuer
+    cert-manager.io/cluster-issuer: ingress-issuer
 spec:
   ingressClassName: nginx
   tls:
@@ -51,7 +51,7 @@ kind: Ingress
 metadata:
   name: ironic-inspector
   annotations:
-    cert-manager.io/issuer: selfsigned-issuer
+    cert-manager.io/cluster-issuer: ingress-issuer
 spec:
   ingressClassName: nginx
   tls:

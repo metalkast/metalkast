@@ -7,7 +7,6 @@ commonLabels:
 resources:
   - deployment.yaml
   - service.yaml
-  - issuer.yaml
   - ingresses.yaml
   - init-credentials-job.yaml
 
