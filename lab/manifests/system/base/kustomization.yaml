@@ -4,10 +4,10 @@ kind: Component
 resources:
   - cert-manager
   - cluster-api
-  - flannel
   - kubevip
   - baremetal-operator
 
 components:
   - ironic
   - nginx-ingress
+  - cilium

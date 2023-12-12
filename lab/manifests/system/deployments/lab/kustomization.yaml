@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - ingress-config.yaml
+  - kube-apiserver-config.yaml
 
 components:
   - ../../base
