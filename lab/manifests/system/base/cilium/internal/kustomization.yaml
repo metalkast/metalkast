@@ -3,14 +3,14 @@ kind: Kustomization
 
 helmCharts:
 - name: cilium
-  valuesInline:
-    kubeProxyReplacement: true
-    k8sServiceHost: "__PLACEHOLDER__"
-    k8sServicePort: 6443
   releaseName: cilium
   namespace: kube-system
   version: 1.14.4
   repo: https://helm.cilium.io/
+  valuesInline:
+    kubeProxyReplacement: true
+    k8sServiceHost: "__PLACEHOLDER__"
+    k8sServicePort: 6443
 
 commonAnnotations:
   metalkast.io/bootstrap-cluster-apply: "false"

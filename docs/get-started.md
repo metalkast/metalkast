@@ -43,7 +43,7 @@ Make sure to include the secrets in cluster's manifests.
 
 **Example:**
 
-<<< @/../lab/manifests/cluster/deployments/lab/nodes/secrets.yaml{6-9,11-12}
+<<< @/../lab/manifests/cluster/deployments/lab-dev/nodes/secrets.yaml{6-9,11-12}
 
 You can encrypt these secrets with [SOPS][sops]:
 
@@ -51,7 +51,7 @@ You can encrypt these secrets with [SOPS][sops]:
 sops \
   --age <age_public_key> \
   --encrypted-regex '^(data|stringData)$' \
-  manifests/cluster/deployments/lab/nodes/secrets.yaml
+  manifests/cluster/deployments/lab-dev/nodes/secrets.yaml
 ```
 
 To use a different editor (e.g. VSCode):
@@ -66,8 +66,8 @@ Generate `BareMetalHosts` manifests and make sure to include them in cluster's m
 
 ```shell { name=generate }
 kast generate \
-  manifests/cluster/deployments/lab/nodes/secrets.yaml \
-  manifests/cluster/deployments/lab/nodes/nodes.yaml
+  manifests/cluster/deployments/lab-dev/nodes/secrets.yaml \
+  manifests/cluster/deployments/lab-dev/nodes/nodes.yaml
 ```
 
 ## Bootstrap the cluster
@@ -76,8 +76,8 @@ Finally, run the bootstrap. This can take up to an hour depending on your hardwa
 
 ```shell { name=bootstrap }
 kast bootstrap \
-  manifests/system/deployments/lab \
-  manifests/cluster/deployments/lab
+  manifests/system/deployments/lab-dev \
+  manifests/cluster/deployments/lab-dev
 ```
 
 [sops]: https://github.com/getsops/sops
