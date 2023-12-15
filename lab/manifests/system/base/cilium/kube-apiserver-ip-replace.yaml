@@ -1,0 +1,22 @@
+source:
+  kind: ConfigMap
+  name: kube-apiserver-config
+  fieldPath: data.ip
+targets:
+  - select:
+      group: apps
+      version: v1
+      kind: Deployment
+      name: cilium-operator
+      namespace: kube-system
+    fieldPaths:
+      - spec.template.spec.containers.*.env.[name=KUBERNETES_SERVICE_HOST].value
+  - select:
+      group: apps
+      version: v1
+      kind: DaemonSet
+      name: cilium
+      namespace: kube-system
+    fieldPaths:
+      - spec.template.spec.initContainers.*.env.[name=KUBERNETES_SERVICE_HOST].value
+      - spec.template.spec.containers.*.env.[name=KUBERNETES_SERVICE_HOST].value

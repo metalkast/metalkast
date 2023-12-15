@@ -35,6 +35,8 @@ metadata:
 spec:
   kubeadmConfigSpec:
     initConfiguration:
+      skipPhases:
+        - addon/kube-proxy
       nodeRegistration:
         criSocket: unix:///var/run/containerd/containerd.sock
         kubeletExtraArgs:
