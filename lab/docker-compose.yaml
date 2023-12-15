@@ -13,7 +13,7 @@ services:
         condition: service_completed_successfully
   node-image-init:
     build: ../image-build
-    command: rsync -avzh --delete /virt-customize/output /output
+    command: rsync -avzh --delete /virt-customize/output/ /output
     volumes:
       - node-image:/output
 
