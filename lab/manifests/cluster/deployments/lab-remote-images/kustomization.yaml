@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - https://dl.metalkast.io/node-images/k8s-v1.27.2-ubuntu-22.04-amd64/config.yaml
+  - ../../configs/k8s/v1.28.4
   - nodes
 
 components:
