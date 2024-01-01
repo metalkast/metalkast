@@ -1,0 +1,24 @@
+name: Generate test report
+on: [push]
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+      - name: Run tests
+        run: make test
+      - name: Generate HTML coverage report
+        run: mkdir -p ci_report_site && go tool cover -html=cover.out -o ci_report_site/index.html
+      - id: pages
+        name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: metalkast-ci
+          directory: ci_report_site
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
