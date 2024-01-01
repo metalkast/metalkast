@@ -59,16 +59,17 @@ func (rf *RedFish) SetBootMedia() error {
 }
 
 func (rf *RedFish) InsertMedia(url string) error {
-	err := rf.initCD()
-
-	if err == nil {
-		err = rf.cd.InsertMedia(url, true, false)
+	if err := rf.initCD(); err != nil {
+		return err
 	}
 
+	err := rf.cd.InsertMediaConfig(redfish.VirtualMediaConfig{
+		Image:    url,
+		Inserted: true,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to insert media: %v", err)
 	}
-
 	return nil
 }
 
