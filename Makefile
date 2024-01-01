@@ -10,3 +10,7 @@ clean:
 build:
 	mkdir -p $(OUT_DIR)
 	go build -o $(OUT_DIR)/kast ./cmd/kast
+
+.PHONY: test
+test:
+	go test -coverprofile cover.out -coverpkg ./... ./...
