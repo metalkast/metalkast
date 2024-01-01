@@ -58,7 +58,7 @@ kast generate SRC DEST
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliLogger, err := log.NewLogger(log.LoggerOptions{})
 			if err != nil {
-				return fmt.Errorf("failed to init logger, %w", err)
+				return fmt.Errorf("failed to init logger: %w", err)
 			}
 			defer (cliLogger.GetSink()).(*log.TeaLogSink).Close()
 			log.SetLogger(cliLogger)
