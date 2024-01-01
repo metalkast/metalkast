@@ -69,7 +69,7 @@ spec:
           exit 1
         fi
 
-        KUBE_VIP='ghcr.io/kube-vip/kube-vip:v0.5.12'
+        KUBE_VIP='ghcr.io/kube-vip/kube-vip:v0.6.4'
         ctr image pull "${KUBE_VIP}"
         ctr run --rm --net-host "${KUBE_VIP}" vip /kube-vip manifest pod --address "${API_ENDPOINT%%:*}" --controlplane --arp --leaderElection | tee /etc/kubernetes/manifests/kube-vip.yaml
   machineTemplate:
