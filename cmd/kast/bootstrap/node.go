@@ -99,7 +99,7 @@ func (c *sshConfig) sshClient() (*ssh.Client, error) {
 }
 
 func (n *BootstrapNode) configureSSH(privateKey ecdsa.PrivateKey) (*sshConfig, error) {
-	err := wait.PollUntilContextTimeout(context.TODO(), time.Second, 10*time.Minute, true, func(ctx context.Context) (bool, error) {
+	err := wait.PollUntilContextTimeout(context.TODO(), time.Second, 15*time.Minute, true, func(ctx context.Context) (bool, error) {
 		err := n.bmc.IpmiClient.Activate()
 		if err != nil {
 			log.Log.Error(err, "failed to activate IPMI console")
