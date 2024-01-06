@@ -2,6 +2,7 @@ package bmc
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/stmcginnis/gofish"
 	"github.com/stmcginnis/gofish/redfish"
@@ -11,7 +12,7 @@ func getVirtualMediaCD(vms []*redfish.VirtualMedia) (*redfish.VirtualMedia, erro
 	var vMedia *redfish.VirtualMedia
 
 	for _, vm := range vms {
-		if vm.ID == "Cd" {
+		if strings.ToLower(vm.ID) == "cd" {
 			vMedia = vm
 			break
 		}
