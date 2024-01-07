@@ -11,6 +11,8 @@ rm -rf extracted/\[BOOT\]/ extracted/casper/filesystem.squashfs
 sed -i -E 's/^([[:space:]]*linux.+---)/\1 console=tty0 console=ttyS0,115200n8/g' extracted/boot/grub/grub.cfg
 # show entire boot output
 sed -i -E 's/^([[:space:]]*linux.+)quiet (.+---)/\1\2/g' extracted/boot/grub/grub.cfg
+# load to ram for more stable execution
+sed -i -E 's/^([[:space:]]*linux.+)( ---.+*)/\1 toram\2/g' extracted/boot/grub/grub.cfg
 # # set timeout to 1s to boot faster
 sed -i -E 's/(set timeout=)30/\11/g' extracted/boot/grub/grub.cfg
 
