@@ -1,11 +1,15 @@
 package bmc
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/stmcginnis/gofish"
 	"github.com/stmcginnis/gofish/redfish"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 func getVirtualMediaCD(vms []*redfish.VirtualMedia) (*redfish.VirtualMedia, error) {
@@ -26,10 +30,11 @@ func getVirtualMediaCD(vms []*redfish.VirtualMedia) (*redfish.VirtualMedia, erro
 }
 
 type RedFish struct {
-	system *redfish.ComputerSystem
-	cd     *redfish.VirtualMedia
-	config *gofish.ClientConfig
-	client *gofish.APIClient
+	system  *redfish.ComputerSystem
+	manager *redfish.Manager
+	cd      *redfish.VirtualMedia
+	config  *gofish.ClientConfig
+	client  *gofish.APIClient
 }
 
 func (rf *RedFish) Boot() error {
@@ -44,18 +49,60 @@ func (rf *RedFish) Boot() error {
 	return nil
 }
 
+type dellTask struct {
+	Oem struct {
+		Dell struct {
+			JobState string `json:"JobState"`
+		} `json:"Dell"`
+	} `json:"Oem"`
+}
+
 func (rf *RedFish) SetBootMedia() error {
 	if err := rf.initSystem(); err != nil {
 		return fmt.Errorf("failed to init system: %w", err)
 	}
 
-	boot := redfish.Boot{
-		BootSourceOverrideTarget: redfish.CdBootSourceOverrideTarget,
-	}
-	if err := rf.system.SetBoot(boot); err != nil {
-		return fmt.Errorf("failed to set boot media: %v", err)
-	}
+	switch rf.system.Manufacturer {
+	case "Dell Inc.":
+		// https://github.com/dell/iDRAC-Redfish-Scripting/blob/7f1836308754d0e9d9fb98ec6ce7e7afff10b487/Redfish%20Python/SetNextOneTimeBootVirtualMediaDeviceOemREDFISH.py#L68
+		payload := map[string]interface{}{
+			"ShareParameters": map[string]interface{}{
+				"Target": "ALL",
+			},
+			"ImportBuffer": "<SystemConfiguration><Component FQDD=\"iDRAC.Embedded.1\"><Attribute Name=\"ServerBoot.1#BootOnce\">Enabled</Attribute><Attribute Name=\"ServerBoot.1#FirstBootDevice\">VCD-DVD</Attribute></Component></SystemConfiguration>",
+		}
+		// https://github.com/dell/iDRAC-Redfish-Scripting/blob/7f1836308754d0e9d9fb98ec6ce7e7afff10b487/Redfish%20Python/SetNextOneTimeBootVirtualMediaDeviceOemREDFISH.py#L66
+		resp, err := rf.client.Post(fmt.Sprintf("/redfish/v1/Managers/%s/Actions/Oem/EID_674_Manager.ImportSystemConfiguration", rf.manager.Name), payload)
+		if err != nil {
+			return fmt.Errorf("failed to set boot media: %w", err)
+		}
 
+		task_uri := resp.Header.Get("Location")
+		err = wait.PollUntilContextTimeout(context.TODO(), time.Second, time.Minute, true, func(ctx context.Context) (bool, error) {
+			resp, err := rf.client.Get(task_uri)
+			if err != nil {
+				return false, err
+			}
+
+			decoder := json.NewDecoder(resp.Body)
+			task := &dellTask{}
+			if err = decoder.Decode(&task); err != nil {
+				return false, err
+			}
+
+			return task.Oem.Dell.JobState == "Completed", nil
+		})
+		if err != nil {
+			return err
+		}
+	default:
+		boot := redfish.Boot{
+			BootSourceOverrideTarget: redfish.CdBootSourceOverrideTarget,
+		}
+		if err := rf.system.SetBoot(boot); err != nil {
+			return fmt.Errorf("failed to set boot media: %v", err)
+		}
+	}
 	return nil
 }
 
@@ -119,15 +166,7 @@ func (rf *RedFish) initSystem() error {
 	return nil
 }
 
-func (rf *RedFish) initCD() error {
-	if rf.cd != nil {
-		return nil
-	}
-
-	if err := rf.initSystem(); err != nil {
-		return fmt.Errorf("failed to init system: %w", err)
-	}
-
+func (rf *RedFish) initManager() error {
 	managerNames := rf.system.ManagedBy
 	if len(managerNames) != 1 {
 		return fmt.Errorf("only 1 manager is expected for each system")
@@ -144,12 +183,27 @@ func (rf *RedFish) initCD() error {
 			break
 		}
 	}
-
 	if manager == nil {
 		return fmt.Errorf("manager for the system %s not found", rf.system.Name)
 	}
+	rf.manager = manager
+	return nil
+}
 
-	vMedia, err := manager.VirtualMedia()
+func (rf *RedFish) initCD() error {
+	if rf.cd != nil {
+		return nil
+	}
+
+	if err := rf.initSystem(); err != nil {
+		return fmt.Errorf("failed to init system: %w", err)
+	}
+
+	if err := rf.initManager(); err != nil {
+		return fmt.Errorf("failed to init manager: %w", err)
+	}
+
+	vMedia, err := rf.manager.VirtualMedia()
 	if err != nil {
 		return fmt.Errorf("failed to get the RedFish virtual media: %v", err)
 	}
