@@ -10,7 +10,7 @@ rm -rf extracted/\[BOOT\]/ extracted/casper/filesystem.squashfs
 # enable console
 sed -i -E 's/^([[:space:]]*linux.+---)/\1 console=tty0 console=ttyS0,115200n8/g' extracted/boot/grub/grub.cfg
 # show entire boot output
-sed -i -E 's/^([[:space:]]*linux.+)quiet (.+---)/\1\2/g' extracted/boot/grub/grub.cfg
+sed -i -E 's/^([[:space:]]*linux.+) quiet(.+)/\1\2/g' extracted/boot/grub/grub.cfg
 # # set timeout to 1s to boot faster
 sed -i -E 's/(set timeout=)30/\11/g' extracted/boot/grub/grub.cfg
 
@@ -48,8 +48,8 @@ cp extracted/casper/filesystem.manifest extracted/casper/filesystem.manifest-des
 sed -i '/ubiquity/d' extracted/casper/filesystem.manifest-desktop
 sed -i '/casper/d' extracted/casper/filesystem.manifest-desktop
 
-rm -f extracted/casper/filesystem.squashfs
-rm -f extracted/casper/filesystem.squashfs.gpg
+rm -f extracted/casper/*.squashfs
+rm -f extracted/casper/*.squashfs.gpg
 
 mksquashfs edit extracted/casper/filesystem.squashfs -comp xz
 printf $(du -sx --block-size=1 edit | cut -f1) > extracted/casper/filesystem.size
