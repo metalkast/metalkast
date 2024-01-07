@@ -54,6 +54,8 @@ rm -f extracted/casper/filesystem.squashfs.gpg
 mksquashfs edit extracted/casper/filesystem.squashfs -comp xz
 printf $(du -sx --block-size=1 edit | cut -f1) > extracted/casper/filesystem.size
 
+rm -rf extracted/pool
+
 cd extracted
 rm -f md5sum.txt
 find -type f -print0 | xargs -0 md5sum | grep -v isolinux/boot.cat | tee md5sum.txt
