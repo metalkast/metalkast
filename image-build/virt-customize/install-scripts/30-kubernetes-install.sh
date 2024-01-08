@@ -22,3 +22,5 @@ apt-get -yq install \
     kubeadm="${CONFIG__KUBERNETES_VERSION}-1.1" \
     kubectl="${CONFIG__KUBERNETES_VERSION}-1.1"
 apt-mark hold kubelet kubeadm kubectl
+
+apt-get clean -yq
