@@ -165,7 +165,7 @@ func bootstrapClusterConfigFromManifests(manifests manifestival.Manifest) (*boot
 	}
 	setup.bootstrapNodeOptions.LiveIsoUrl = strings.TrimSuffix(
 		kubeadmControlPlaneMachineTemplate.Spec.Template.Spec.Image.URL, nodeImgSuffix,
-	) + "-live.iso"
+	) + "-netboot-live.iso"
 
 	return &setup, nil
 }

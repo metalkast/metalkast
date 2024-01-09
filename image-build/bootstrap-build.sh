@@ -38,7 +38,7 @@ cp -R initrdmount/main/scripts initrdconf/scripts
 
 kernel_version=$(file -bL extracted/casper/vmlinuz | grep -o 'version [^ ]*' | cut -d ' ' -f 2)
 cp -r edit/lib/modules/$kernel_version /lib/modules/
-mkinitramfs -d initrdconf -o ninitrd $kernel_version
+CASPER_GENERATE_UUID=1 mkinitramfs -d initrdconf -o ninitrd $kernel_version
 rm extracted/casper/initrd
 mv ninitrd extracted/casper/initrd
 
@@ -61,11 +61,13 @@ rm -f md5sum.txt
 find -type f -print0 | xargs -0 md5sum | grep -v isolinux/boot.cat | tee md5sum.txt
 cd ..
 
+live_iso_output=$(echo $image_base | sed 's/\.img$/-live.iso/')
+
 # Add initial options first
 cat <<EOF >xorriso.conf
 -as mkisofs \\
 -r -J --joliet-long \\
--o $(echo $image_base | sed 's/\.img$/-live.iso/') \\
+-o $live_iso_output \\
 EOF
 # Use xorriso do the magic of figuring out options used to create original iso, making sure
 # to append backslash to each line as required.
@@ -75,4 +77,13 @@ xorriso -report_about warning -indev "live.iso" -report_system_area as_mkisofs |
 echo 'extracted' >>xorriso.conf
 
 # Modify options in xorriso.conf as desired or use as-is
+xorriso -options_from_file xorriso.conf
+
+sed -i -E 's/-live.iso/-netboot-live.iso/g' xorriso.conf
+NETBOOT_BASE_URL=${NETBOOT_BASE_URL%"/"} # remove trailing slash
+live_iso_dirname=$(dirname $(realpath $live_iso_output))
+release_dir=${live_iso_dirname#"$(realpath output)/"}
+sed -i -E "s#^([[:space:]]*linux[[:space:]]*/casper/vmlinuz).+(---)#\1 ip=dhcp url=${NETBOOT_BASE_URL}/${release_dir}/cluster-node-live.iso ignore_uuid \2#g" extracted/boot/grub/grub.cfg
+rm -f extracted/casper/filesystem.squashfs
+rm -f extracted/casper/filesystem.squashfs.gpg
 xorriso -options_from_file xorriso.conf
