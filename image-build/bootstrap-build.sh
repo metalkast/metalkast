@@ -38,6 +38,7 @@ cp -R initrdmount/main/scripts initrdconf/scripts
 
 kernel_version=$(file -bL extracted/casper/vmlinuz | grep -o 'version [^ ]*' | cut -d ' ' -f 2)
 cp -r edit/lib/modules/$kernel_version /lib/modules/
+# CASPER_GENERATE_UUID=1 configures openssl in initramfs image to enable netboot with https
 CASPER_GENERATE_UUID=1 mkinitramfs -d initrdconf -o ninitrd $kernel_version
 rm extracted/casper/initrd
 mv ninitrd extracted/casper/initrd
