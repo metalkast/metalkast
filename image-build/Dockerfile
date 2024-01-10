@@ -52,7 +52,7 @@ ENV CONFIG__UBUNTU_VERSION=$UBUNTU_VERSION
 ARG KUBERNETES_VERSION=1.28.4
 ENV CONFIG__KUBERNETES_VERSION=$KUBERNETES_VERSION
 
-RUN ./build.sh
-
 COPY bootstrap-build.sh /virt-customize
-RUN ./bootstrap-build.sh
+RUN find -type f -print0 | xargs -0 md5sum | tee md5sum.txt && printenv >> md5sum.txt
+
+ENTRYPOINT ["./build.sh"]

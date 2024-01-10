@@ -13,9 +13,9 @@ services:
         condition: service_completed_successfully
   node-image-init:
     build: ../image-build
-    command: rsync -avzh --delete /virt-customize/output/ /output
+    privileged: true
     volumes:
-      - node-image:/output
+      - node-image:/virt-customize/output
 
 volumes:
   node-image:
