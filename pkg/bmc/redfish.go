@@ -41,8 +41,14 @@ func (rf *RedFish) Boot() error {
 		return fmt.Errorf("failed to init system: %w", err)
 	}
 
-	if err := rf.system.Reset(redfish.OnResetType); err != nil {
-		return fmt.Errorf("failed to boot system: %v", err)
+	if rf.system.PowerState == redfish.OffPowerState {
+		if err := rf.system.Reset(redfish.OnResetType); err != nil {
+			return fmt.Errorf("failed to boot system: %v", err)
+		}
+	} else {
+		if err := rf.system.Reset(redfish.ForceRestartResetType); err != nil {
+			return fmt.Errorf("failed to boot system: %v", err)
+		}
 	}
 
 	return nil
