@@ -5,6 +5,13 @@ VERSION=k8s-v$CONFIG__KUBERNETES_VERSION-ubuntu-$CONFIG__UBUNTU_VERSION-amd64
 OUTPUT_DIR=output/$VERSION
 mkdir -p $OUTPUT_DIR
 
+BUILD_ENVIRONMENT_VERSION_FILE=md5sum.txt
+if cmp -s "$BUILD_ENVIRONMENT_VERSION_FILE" "$OUTPUT_DIR/$BUILD_ENVIRONMENT_VERSION_FILE"; then
+    echo "Build completed (cached)"
+    exit 0
+fi
+rm -rf $OUTPUT_DIR/*
+
 printenv | grep -E '^CONFIG__' > install-scripts/.env
 
 ORIGINAL_UBUNTU_IMAGE=ubuntu.img
@@ -42,3 +49,8 @@ data:
   NODE_IMAGE_URL: https://dl.metalkast.io/node-images/${VERSION}/cluster-node.img
   NODE_IMAGE_CHECKSUM: ${checksum}
 EOF
+
+./bootstrap-build.sh
+
+# Mark build as finished and enable caching
+cp $BUILD_ENVIRONMENT_VERSION_FILE $OUTPUT_DIR/$BUILD_ENVIRONMENT_VERSION_FILE
