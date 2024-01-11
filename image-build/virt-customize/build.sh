@@ -9,9 +9,8 @@ BUILD_ENVIRONMENT_VERSION_FILE=md5sum.txt
 if cmp -s "$BUILD_ENVIRONMENT_VERSION_FILE" "$OUTPUT_DIR/$BUILD_ENVIRONMENT_VERSION_FILE"; then
     echo "Build completed (cached)"
     exit 0
-else
-    rm -rf $OUTPUT_DIR/*
 fi
+rm -rf $OUTPUT_DIR/*
 
 printenv | grep -E '^CONFIG__' > install-scripts/.env
 
