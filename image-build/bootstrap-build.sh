@@ -62,7 +62,7 @@ rm -f md5sum.txt
 find -type f -print0 | xargs -0 md5sum | grep -v isolinux/boot.cat | tee md5sum.txt
 cd ..
 
-live_iso_output=$(echo $image_base | sed 's/\.img$/-live.iso/')
+live_iso_output="${image_base%.img}-live.iso"
 
 # Add initial options first
 cat <<EOF >xorriso.conf
