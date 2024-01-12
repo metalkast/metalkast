@@ -14,6 +14,8 @@ services:
   node-image-init:
     build: ../image-build
     privileged: true
+    environment:
+      NETBOOT_BASE_URL: http://192.168.122.1/
     volumes:
       - node-image:/virt-customize/output
 

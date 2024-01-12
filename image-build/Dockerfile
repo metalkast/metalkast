@@ -55,4 +55,5 @@ ENV CONFIG__KUBERNETES_VERSION=$KUBERNETES_VERSION
 COPY bootstrap-build.sh /virt-customize
 RUN find -type f -print0 | xargs -0 md5sum | tee md5sum.txt && printenv >> md5sum.txt
 
+ENV NETBOOT_BASE_URL=https://dl.metalkast.io/node-images/
 ENTRYPOINT ["./build.sh"]

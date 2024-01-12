@@ -31,7 +31,7 @@ func TestBootstrapClusterConfigFromManifests(t *testing.T) {
 					RedfishUrl:      "https://192.168.122.101",
 					RedfishUsername: "admin",
 					RedfishPassword: "password",
-					LiveIsoUrl:      "http://192.168.122.1/k8s-cluster-node-1.27.2-ubuntu-22.04-amd64-live.iso",
+					LiveIsoUrl:      "http://192.168.122.1/k8s-cluster-node-1.27.2-ubuntu-22.04-amd64-netboot-live.iso",
 				},
 				clusterNamespace: "clusters-test-ns",
 				bootstrapClusterManifests: testutil.TestManifests(t, manifestival.Reader(strings.NewReader(`
