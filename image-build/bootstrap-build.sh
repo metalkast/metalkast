@@ -20,7 +20,6 @@ image_base=$(find ./output -name '*.img')
 image_live=$image_base.live
 cp $image_base $image_live
 
-qemu-img resize $image_live +4G
 virt-customize -v -x -a $image_live --commands-from-file commands-live
 
 mkdir edit
