@@ -229,7 +229,7 @@ func initKubeadm(c sshConfig) error {
 		set -x
 		set -eEuo pipefail
 		disk=$(lsblk | awk '"'"'/disk/ {print $1; exit}'"'"')
-		mkfs.ext4 /dev/$disk
+		mkfs.ext4 /dev/$disk -F
 		mkdir /tmp/containerd
 		mount /dev/$disk /tmp/containerd
 		systemctl stop containerd
