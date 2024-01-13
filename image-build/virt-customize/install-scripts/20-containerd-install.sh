@@ -34,7 +34,7 @@ echo \
 apt-get update
 
 # Step 2
-apt-get install -y docker-ce docker-ce-cli containerd.io
+apt-get install -y containerd.io
 
 
 # Configure containerd
