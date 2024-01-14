@@ -1,6 +1,8 @@
 package fake
 
 import (
+	"context"
+
 	expect "github.com/Netflix/go-expect"
 	"github.com/metalkast/metalkast/pkg/bmc"
 )
@@ -17,15 +19,6 @@ func NewFakeIpmiTool(c *expect.Console) FakeIpmiTool {
 
 var _ bmc.IpmiSolClient = &FakeIpmiTool{}
 
-func (t *FakeIpmiTool) Activate() error {
-	return nil
-}
-
-func (t *FakeIpmiTool) Wait() error {
-	t.c.Close()
-	return nil
-}
-
-func (t *FakeIpmiTool) Console() *expect.Console {
-	return t.c
+func (t *FakeIpmiTool) Run(ctx context.Context, f func(c *expect.Console) error) error {
+	return f(t.c)
 }
