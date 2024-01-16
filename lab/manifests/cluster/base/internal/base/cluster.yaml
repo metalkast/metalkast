@@ -71,7 +71,15 @@ spec:
 
         KUBE_VIP='ghcr.io/kube-vip/kube-vip:v0.6.4'
         ctr image pull "${KUBE_VIP}"
-        ctr run --rm --net-host "${KUBE_VIP}" vip /kube-vip manifest pod --address "${API_ENDPOINT%%:*}" --controlplane --arp --leaderElection | tee /etc/kubernetes/manifests/kube-vip.yaml
+        ctr run --rm --net-host "${KUBE_VIP}" vip /kube-vip manifest pod \
+          --address "${API_ENDPOINT%%:*}" \
+          --controlplane \
+          --arp \
+          --leaderElection \
+          --leaseDuration	30 \
+          --leaseRenewDuration 20 \
+          --leaseRetry 4 |
+        tee /etc/kubernetes/manifests/kube-vip.yaml
   machineTemplate:
     infrastructureRef:
       apiVersion: infrastructure.cluster.x-k8s.io/v1beta1

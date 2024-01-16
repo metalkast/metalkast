@@ -2,26 +2,24 @@ package bmc
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/url"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/Netflix/go-expect"
 	"github.com/go-logr/logr"
 	kastlogr "github.com/metalkast/metalkast/pkg/logr"
+	"golang.org/x/sync/errgroup"
 )
 
 type IpmiSolClient interface {
-	Activate() error
-	Wait() error
-	Console() *expect.Console
+	Run(context.Context, func(c *expect.Console) error) error
 }
 
 type ipmiTool struct {
-	*exec.Cmd
-	c            *expect.Console
+	logger       logr.Logger
 	ipmiAddress  string
 	ipmiUsername string
 	ipmiPassword string
@@ -29,35 +27,46 @@ type ipmiTool struct {
 
 var _ IpmiSolClient = &ipmiTool{}
 
-func (t *ipmiTool) Activate() error {
-	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
-	// Ignore exit code since deactivate doesn't work inside lab
-	exec.CommandContext(ctx, "ipmitool", "-I", "lanplus", "-H", t.ipmiAddress, "-U", t.ipmiUsername, "-P", t.ipmiPassword, "sol", "deactivate").Run()
+func (t *ipmiTool) Run(ctx context.Context, f func(c *expect.Console) error) error {
+	c, err := expect.NewConsole(expect.WithStdout(kastlogr.NewLogWriter(t.logger)), expect.WithDefaultTimeout(10*time.Second))
+	if err != nil {
+		return fmt.Errorf("failed to configure console: %w", err)
+	}
+
+	activateCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	out, err := exec.CommandContext(activateCtx, "ipmitool", "-I", "lanplus", "-H", t.ipmiAddress, "-U", t.ipmiUsername, "-P", t.ipmiPassword, "sol", "deactivate").CombinedOutput()
 	cancel()
-	cmd := exec.CommandContext(context.TODO(), "ipmitool", "-I", "lanplus", "-H", t.ipmiAddress, "-U", t.ipmiUsername, "-P", t.ipmiPassword, "sol", "activate")
-	cmd.Stdin = t.c.Tty()
-	cmd.Stdout = t.c.Tty()
-	cmd.Stderr = t.c.Tty()
-	t.Cmd = cmd
-	return cmd.Start()
-}
+	if err != nil && !strings.Contains(string(out), "already de-activated") {
+		t.logger.Error(err, "failed to deactivate previous IPMI SOL Session")
+	}
 
-func (t *ipmiTool) Console() *expect.Console {
-	return t.c
-}
+	g, ctx := errgroup.WithContext(ctx)
+	cmd := exec.CommandContext(ctx, "ipmitool", "-I", "lanplus", "-H", t.ipmiAddress, "-U", t.ipmiUsername, "-P", t.ipmiPassword, "sol", "activate")
+	cmd.Stdin = c.Tty()
+	cmd.Stdout = c.Tty()
+	cmd.Stderr = c.Tty()
+	err = cmd.Start()
+	if err != nil {
+		return fmt.Errorf("failed to start IPMI SOL Session: %w", err)
+	}
 
-func (t *ipmiTool) Wait() error {
-	return errors.Join(t.c.Close(), t.Cmd.Wait())
+	if _, err := c.ExpectString("SOL Session operational"); err != nil {
+		return fmt.Errorf("failed to start SOL Session")
+	}
+
+	g.Go(func() error {
+		return cmd.Wait()
+	})
+	g.Go(func() error {
+		return f(c)
+	})
+
+	return g.Wait()
 }
 
 func newIpmiTool(ipmiAddress, ipmiUsername, ipmiPassword string, logger logr.Logger) (*ipmiTool, error) {
-	c, err := expect.NewConsole(expect.WithStdout(kastlogr.NewLogWriter(logger)), expect.WithDefaultTimeout(10*time.Second))
-	if err != nil {
-		return nil, fmt.Errorf("failed to configure console: %w", err)
-	}
-
 	return &ipmiTool{
-		c:            c,
+		logger:       logger,
 		ipmiAddress:  ipmiAddress,
 		ipmiUsername: ipmiUsername,
 		ipmiPassword: ipmiPassword,

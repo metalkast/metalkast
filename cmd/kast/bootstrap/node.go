@@ -10,6 +10,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/Netflix/go-expect"
 	"github.com/metalkast/metalkast/cmd/kast/log"
 	"github.com/metalkast/metalkast/pkg/bmc"
 	"github.com/metalkast/metalkast/pkg/cluster"
@@ -99,106 +100,96 @@ func (c *sshConfig) sshClient() (*ssh.Client, error) {
 }
 
 func (n *BootstrapNode) configureSSH(privateKey ecdsa.PrivateKey) (*sshConfig, error) {
-	err := wait.PollUntilContextTimeout(context.TODO(), time.Second, 15*time.Minute, true, func(ctx context.Context) (bool, error) {
-		err := n.bmc.IpmiClient.Activate()
-		if err != nil {
-			log.Log.Error(err, "failed to activate IPMI console")
-		}
-		return err == nil, nil
-	})
-	if err != nil {
-		return nil, fmt.Errorf("timed out trying to start IPMI console: %w", err)
-	}
-
-	c := n.bmc.IpmiClient.Console()
 	var (
 		hostPublicKey ssh.PublicKey
 		hostIp        string
 	)
-	err = wait.PollUntilContextTimeout(context.TODO(), time.Second, 10*time.Minute, true, func(ctx context.Context) (bool, error) {
-		if _, err := c.SendLine("\n"); err != nil {
-			log.Log.Error(err, "failed to send initial check to test liveness of IPMI console")
-			return false, nil
-		}
-		if _, err := c.ExpectString("login:"); err != nil {
-			log.Log.Error(err, "no login prompt found")
-			return false, nil
-		}
-		if _, err := c.SendLine(BootstrapNodeLiveCdUsername); err != nil {
-			return false, err
-		}
-		if _, err := c.ExpectString("Password:"); err != nil {
-			return false, err
-		}
-		if _, err := c.SendLine(BootstrapNodeLiveCdPassword); err != nil {
-			return false, err
-		}
+	err := wait.PollUntilContextTimeout(context.TODO(), time.Second, 20*time.Minute, true, func(ctx context.Context) (bool, error) {
+		err := n.bmc.IpmiClient.Run(ctx, func(c *expect.Console) error {
+			if _, err := c.Write([]byte("\000")); err != nil {
+				return err
+			}
+			if _, err := c.SendLine("\n"); err != nil {
+				return err
+			}
+			if _, err := c.ExpectString("login:"); err != nil {
+				return err
+			}
+			if _, err := c.SendLine(BootstrapNodeLiveCdUsername); err != nil {
+				return err
+			}
+			if _, err := c.ExpectString("Password:"); err != nil {
+				return err
+			}
+			if _, err := c.SendLine(BootstrapNodeLiveCdPassword); err != nil {
+				return err
+			}
 
-		const prompt = "$ "
-		if _, err := c.ExpectString(prompt); err != nil {
-			return false, err
-		}
-		if _, err := c.SendLine("sudo ssh-keygen -A && sudo systemctl enable --now ssh"); err != nil {
-			return false, err
-		}
-		if _, err := c.ExpectString(prompt); err != nil {
-			return false, err
-		}
+			const prompt = "$ "
+			if _, err := c.ExpectString(prompt); err != nil {
+				return err
+			}
+			if _, err := c.SendLine("sudo ssh-keygen -A && sudo systemctl enable --now ssh"); err != nil {
+				return err
+			}
+			if _, err := c.ExpectString(prompt); err != nil {
+				return err
+			}
 
-		publicKey, err := ssh.NewPublicKey(privateKey.Public())
+			publicKey, err := ssh.NewPublicKey(privateKey.Public())
+			if err != nil {
+				return err
+			}
+			if _, err := c.SendLine(fmt.Sprintf("mkdir -p ~/.ssh && echo '%s' > ~/.ssh/authorized_keys", ssh.MarshalAuthorizedKey(publicKey))); err != nil {
+				return err
+			}
+			if _, err := c.ExpectString(prompt); err != nil {
+				return err
+			}
+
+			const printHostPublicKeyCmd = "cat /etc/ssh/ssh_host_ecdsa_key.pub"
+			if _, err := c.SendLine(printHostPublicKeyCmd); err != nil {
+				return err
+			}
+			hostPublicKeyOutput, err := c.ExpectString(prompt)
+			if err != nil {
+				return err
+			}
+			hostPublicKey, _, _, _, err = ssh.ParseAuthorizedKey([]byte(
+				strings.TrimSpace(strings.TrimPrefix(
+					strings.TrimSuffix(hostPublicKeyOutput, prompt),
+					printHostPublicKeyCmd,
+				)),
+			))
+			if err != nil {
+				return err
+			}
+
+			const printHostIpCmd = "hostname -I | cut -d' ' -f1"
+			if _, err := c.SendLine(printHostIpCmd); err != nil {
+				return err
+			}
+			hostIpOutput, err := c.ExpectString(prompt)
+			if err != nil {
+				return err
+			}
+			hostIp = strings.TrimSpace(strings.TrimPrefix(
+				strings.TrimSuffix(hostIpOutput, prompt),
+				printHostIpCmd,
+			))
+
+			if _, err := c.SendLine("exit"); err != nil {
+				return err
+			}
+			if _, err := c.Send("~."); err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
-			return false, err
+			log.Log.V(1).Error(err, "failed to configure ssh via IPMI")
 		}
-		if _, err := c.SendLine(fmt.Sprintf("mkdir -p ~/.ssh && echo '%s' > ~/.ssh/authorized_keys", ssh.MarshalAuthorizedKey(publicKey))); err != nil {
-			return false, err
-		}
-		if _, err := c.ExpectString(prompt); err != nil {
-			return false, err
-		}
-
-		const printHostPublicKeyCmd = "cat /etc/ssh/ssh_host_ecdsa_key.pub"
-		if _, err := c.SendLine(printHostPublicKeyCmd); err != nil {
-			return false, err
-		}
-		hostPublicKeyOutput, err := c.ExpectString(prompt)
-		if err != nil {
-			return false, err
-		}
-		hostPublicKey, _, _, _, err = ssh.ParseAuthorizedKey([]byte(
-			strings.TrimSpace(strings.TrimPrefix(
-				strings.TrimSuffix(hostPublicKeyOutput, prompt),
-				printHostPublicKeyCmd,
-			)),
-		))
-		if err != nil {
-			return false, err
-		}
-
-		const printHostIpCmd = "hostname -I | cut -d' ' -f1"
-		if _, err := c.SendLine(printHostIpCmd); err != nil {
-			return false, err
-		}
-		hostIpOutput, err := c.ExpectString(prompt)
-		if err != nil {
-			return false, err
-		}
-		hostIp = strings.TrimSpace(strings.TrimPrefix(
-			strings.TrimSuffix(hostIpOutput, prompt),
-			printHostIpCmd,
-		))
-
-		if _, err := c.SendLine("exit"); err != nil {
-			return false, err
-		}
-		if _, err := c.Send("~."); err != nil {
-			return false, err
-		}
-
-		if err := n.bmc.IpmiClient.Wait(); err != nil {
-			return false, err
-		}
-
-		return true, nil
+		return err == nil, nil
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to configure ssh access to bootstrap node: %w", err)
@@ -229,7 +220,7 @@ func initKubeadm(c sshConfig) error {
 		set -x
 		set -eEuo pipefail
 		disk=$(lsblk | awk '"'"'/disk/ {print $1; exit}'"'"')
-		mkfs.ext4 /dev/$disk
+		mkfs.ext4 /dev/$disk -F
 		mkdir /tmp/containerd
 		mount /dev/$disk /tmp/containerd
 		systemctl stop containerd

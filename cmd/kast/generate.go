@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/manifestival/manifestival"
 	"github.com/metalkast/metalkast/cmd/kast/log"
 	"github.com/spf13/cobra"
@@ -200,6 +201,10 @@ func generateBareMetalHost(secret corev1.Secret, redfishUrl, suffix string, outp
 		return nil, fmt.Errorf("failed to create redfish client: %w", err)
 	}
 	defer client.Logout()
+	retryClient := retryablehttp.NewClient()
+	retryClient.Logger = nil
+	retryClient.HTTPClient = client.HTTPClient
+	client.HTTPClient = retryClient.StandardClient()
 
 	systems, err := client.Service.Systems()
 	if err != nil {
