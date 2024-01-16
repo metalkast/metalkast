@@ -13,10 +13,6 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-type fakeIpmiTool struct {
-	c *expect.Console
-}
-
 func TestConfigureSSH(t *testing.T) {
 	const consoleOutput = `
 [  OK  ] Finished Permit User Sessions.
@@ -27,7 +23,7 @@ systemd-user-sessions.service
 
 Ubuntu 22.04.2 LTS ubuntu ttyS0
 
-ubuntu login: [   17.791447] overlayfs: filesystem on '/var/lib/docker/check-overlayfs-support112685843/upper' not supported as upperdir
+ubuntu login:
 bootstrap
 Password:
 Welcome to Ubuntu 22.04.2 LTS (GNU/Linux 5.15.0-76-generic x86_64)
