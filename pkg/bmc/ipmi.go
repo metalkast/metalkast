@@ -57,9 +57,14 @@ func (t *ipmiTool) Run(ctx context.Context, f func(c *expect.Console) error) err
 		return cmd.Wait()
 	})
 
+	if _, err := c.ExpectString("SOL Session operational"); err != nil {
+		cancel()
+		return fmt.Errorf("could not establish SOL Session")
+	}
+
 	err = wait.PollUntilContextTimeout(ctx, time.Second, 30*time.Second, true, func(ctx context.Context) (bool, error) {
-		if _, err := c.Write([]byte("\000")); err != nil {
-			return false, err
+		if _, err := c.SendLine("\004"); err != nil {
+			return false, nil
 		}
 		if _, err := c.Expect(expect.String("login:"), expect.WithTimeout(time.Second*5)); err != nil {
 			return false, nil
