@@ -61,7 +61,7 @@ func (t *ipmiTool) Run(ctx context.Context, f func(c *expect.Console) error) err
 		return true, nil
 	})
 	if err != nil {
-		return fmt.Errorf("cannot find console")
+		return fmt.Errorf("timed out waiting for console")
 	}
 
 	g.Go(func() error {
