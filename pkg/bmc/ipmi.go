@@ -12,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	kastlogr "github.com/metalkast/metalkast/pkg/logr"
 	"golang.org/x/sync/errgroup"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 type IpmiSolClient interface {
@@ -50,8 +51,17 @@ func (t *ipmiTool) Run(ctx context.Context, f func(c *expect.Console) error) err
 		return fmt.Errorf("failed to start IPMI SOL Session: %w", err)
 	}
 
-	if _, err := c.ExpectString("SOL Session operational"); err != nil {
-		return fmt.Errorf("failed to start SOL Session")
+	err = wait.PollUntilContextTimeout(ctx, time.Second, 30*time.Second, true, func(ctx context.Context) (bool, error) {
+		if _, err := c.Write([]byte("\000")); err != nil {
+			return false, err
+		}
+		if _, err := c.Expect(expect.String("login:"), expect.WithTimeout(time.Second*5)); err != nil {
+			return false, nil
+		}
+		return true, nil
+	})
+	if err != nil {
+		return fmt.Errorf("cannot find console")
 	}
 
 	g.Go(func() error {
