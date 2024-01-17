@@ -1,30 +1,6 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ironic-deploy
-  annotations:
-    cert-manager.io/cluster-issuer: ingress-issuer
-spec:
-  ingressClassName: nginx
-  tls:
-  - secretName: ironic-deploy-tls
-    hosts:
-    - ironic-deploy.__DOMAIN__
-  rules:
-  - host: ironic-deploy.__DOMAIN__
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: ironic
-            port:
-              number: 80
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
   name: ironic
   annotations:
     cert-manager.io/cluster-issuer: ingress-issuer
@@ -34,6 +10,8 @@ spec:
   - secretName: ironic-tls
     hosts:
     - ironic.__DOMAIN__
+    - ironic-deploy.__DOMAIN__
+    - ironic-inspector.__DOMAIN__
   rules:
   - host: ironic.__DOMAIN__
     http:
@@ -45,20 +23,16 @@ spec:
             name: ironic
             port:
               number: 6385
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: ironic-inspector
-  annotations:
-    cert-manager.io/cluster-issuer: ingress-issuer
-spec:
-  ingressClassName: nginx
-  tls:
-  - secretName: ironic-inspector-tls
-    hosts:
-    - ironic-inspector.__DOMAIN__
-  rules:
+  - host: ironic-deploy.__DOMAIN__
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ironic
+            port:
+              number: 80
   - host: ironic-inspector.__DOMAIN__
     http:
       paths:
