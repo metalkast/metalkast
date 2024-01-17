@@ -42,14 +42,20 @@ func (t *ipmiTool) Run(ctx context.Context, f func(c *expect.Console) error) err
 	}
 
 	g, ctx := errgroup.WithContext(ctx)
+	ctx, cancel = context.WithCancel(ctx)
 	cmd := exec.CommandContext(ctx, "ipmitool", "-I", "lanplus", "-H", t.ipmiAddress, "-U", t.ipmiUsername, "-P", t.ipmiPassword, "sol", "activate")
 	cmd.Stdin = c.Tty()
 	cmd.Stdout = c.Tty()
 	cmd.Stderr = c.Tty()
 	err = cmd.Start()
 	if err != nil {
+		cancel()
 		return fmt.Errorf("failed to start IPMI SOL Session: %w", err)
 	}
+
+	g.Go(func() error {
+		return cmd.Wait()
+	})
 
 	err = wait.PollUntilContextTimeout(ctx, time.Second, 30*time.Second, true, func(ctx context.Context) (bool, error) {
 		if _, err := c.Write([]byte("\000")); err != nil {
@@ -61,16 +67,16 @@ func (t *ipmiTool) Run(ctx context.Context, f func(c *expect.Console) error) err
 		return true, nil
 	})
 	if err != nil {
-		return fmt.Errorf("timed out waiting for console")
+		cancel()
+		g.Wait()
+		return fmt.Errorf("timed-out waiting for console")
 	}
 
-	g.Go(func() error {
-		return cmd.Wait()
-	})
 	g.Go(func() error {
 		return f(c)
 	})
 
+	defer cancel()
 	return g.Wait()
 }
 
