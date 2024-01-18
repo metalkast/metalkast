@@ -12,6 +12,7 @@ import (
 	"github.com/go-logr/logr"
 	kastlogr "github.com/metalkast/metalkast/pkg/logr"
 	"golang.org/x/sync/errgroup"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 type IpmiSolClient interface {
@@ -41,26 +42,46 @@ func (t *ipmiTool) Run(ctx context.Context, f func(c *expect.Console) error) err
 	}
 
 	g, ctx := errgroup.WithContext(ctx)
+	ctx, cancel = context.WithCancel(ctx)
 	cmd := exec.CommandContext(ctx, "ipmitool", "-I", "lanplus", "-H", t.ipmiAddress, "-U", t.ipmiUsername, "-P", t.ipmiPassword, "sol", "activate")
 	cmd.Stdin = c.Tty()
 	cmd.Stdout = c.Tty()
 	cmd.Stderr = c.Tty()
 	err = cmd.Start()
 	if err != nil {
+		cancel()
 		return fmt.Errorf("failed to start IPMI SOL Session: %w", err)
-	}
-
-	if _, err := c.ExpectString("SOL Session operational"); err != nil {
-		return fmt.Errorf("failed to start SOL Session")
 	}
 
 	g.Go(func() error {
 		return cmd.Wait()
 	})
+
+	if _, err := c.ExpectString("SOL Session operational"); err != nil {
+		cancel()
+		return fmt.Errorf("could not establish SOL Session")
+	}
+
+	err = wait.PollUntilContextTimeout(ctx, time.Second, 30*time.Second, true, func(ctx context.Context) (bool, error) {
+		if _, err := c.SendLine("\004"); err != nil {
+			return false, nil
+		}
+		if _, err := c.Expect(expect.String("login:"), expect.WithTimeout(time.Second*5)); err != nil {
+			return false, nil
+		}
+		return true, nil
+	})
+	if err != nil {
+		cancel()
+		g.Wait()
+		return fmt.Errorf("timed-out waiting for console")
+	}
+
 	g.Go(func() error {
 		return f(c)
 	})
 
+	defer cancel()
 	return g.Wait()
 }
 
