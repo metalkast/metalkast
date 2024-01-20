@@ -100,7 +100,7 @@ spec:
   nodeReuse: false
   template:
     spec:
-      automatedCleaningMode: metadata
+      automatedCleaningMode: disabled
       dataTemplate:
         name: root-controlplane-template
       image:
@@ -147,7 +147,7 @@ spec:
   nodeReuse: false
   template:
     spec:
-      automatedCleaningMode: metadata
+      automatedCleaningMode: disabled
       dataTemplate:
         name: root-workers-template
       image:
