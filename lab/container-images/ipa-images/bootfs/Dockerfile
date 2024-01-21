@@ -1,4 +1,4 @@
-ARG ALPINE_VERSION=3.15.4
+ARG ALPINE_VERSION=3.19.0
 
 FROM alpine:${ALPINE_VERSION}
 
@@ -16,7 +16,9 @@ RUN tar -xvf alpine-minirootfs-${ALPINE_VERSION}-x86_64.tar.gz -C alpine-miniroo
 
 # Base packages
 RUN apk add --root alpine-minirootfs \
-	busybox-initscripts \
+	busybox-openrc \
+	busybox-mdev-openrc \
+	busybox-extras-openrc \
 	kbd \
 	openrc
 
@@ -30,7 +32,8 @@ RUN apk add --root alpine-minirootfs \
   util-linux \
   coreutils \
   hdparm \
-  qemu-img
+  qemu-img \
+  lshw
 
 # Some ironic-python-agent dependencies. Not all dependencies are available in apk, but it is still better to install those that are.
 # Also packages required to build other dependencies.
@@ -61,14 +64,22 @@ RUN apk add --root alpine-minirootfs \
 RUN apk add --root alpine-minirootfs \
 	gcc \
 	python3-dev \
-	musl-dev
+	musl-dev \
+	linux-headers
 
 # pip can't download packages when it runs in chroot for some reasons.
-# TODO: try to insall everything here and then just copy it to the destination image.
 RUN mkdir alpine-minirootfs/tmp/pip3
 COPY requirements.txt alpine-minirootfs/tmp/pip3/
 RUN pip3 download -r alpine-minirootfs/tmp/pip3/requirements.txt --no-deps -d alpine-minirootfs/tmp/pip3/
-RUN chroot alpine-minirootfs pip3 install --isolated --no-index --find-links /tmp/pip3 -r /tmp/pip3/requirements.txt
+RUN <<EOF
+chroot alpine-minirootfs sh -e -c "
+mkdir /usr/lib/ironic-python-agent
+cd /usr/lib/ironic-python-agent
+python3 -m venv .
+. ./bin/activate
+pip3 install --isolated --no-index --find-links /tmp/pip3 -r /tmp/pip3/requirements.txt
+"
+EOF
 RUN rm -rf alpine-minirootfs/tmp/pip3
 
 RUN apk del --root alpine-minirootfs \

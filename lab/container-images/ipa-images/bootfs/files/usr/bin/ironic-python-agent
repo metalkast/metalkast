@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cd /usr/lib/ironic-python-agent
+. ./bin/activate
+ironic-python-agent
