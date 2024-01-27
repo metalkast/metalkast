@@ -1,0 +1,42 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+patches:
+- target:
+    kind: KubeadmControlPlane
+  patch: |-
+    - op: add
+      path: /spec/kubeadmConfigSpec/files/-
+      value:
+        path: /etc/netplan/50-cloud-init.yaml
+        owner: root:root
+        permissions: '0644'
+        content: |
+          network:
+            version: 2
+            renderer: networkd
+            ethernets:
+              alleths:
+                match:
+                  name: e*
+                dhcp4: true
+                dhcp6: true
+- target:
+    kind: KubeadmConfigTemplate
+  patch: |-
+    - op: add
+      path: /spec/template/spec/files/-
+      value:
+        path: /etc/netplan/50-cloud-init.yaml
+        owner: root:root
+        permissions: '0644'
+        content: |
+          network:
+            version: 2
+            renderer: networkd
+            ethernets:
+              alleths:
+                match:
+                  name: e*
+                dhcp4: true
+                dhcp6: true
