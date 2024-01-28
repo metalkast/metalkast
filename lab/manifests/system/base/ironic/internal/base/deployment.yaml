@@ -31,8 +31,8 @@ spec:
           args:
             - |
               mkdir -p /shared/html
-              cp /tmp/linux-kernel/boot/vmlinuz-lts /shared/html/ironic-python-agent.kernel
-              cp /tmp/ironic-python-agent.initramfs /shared/html/
+              cp /ironic-python-agent.kernel /shared/html/
+              cp /ironic-python-agent.initramfs /shared/html/
           volumeMounts:
             - mountPath: "/shared"
               name: ironic-shared
