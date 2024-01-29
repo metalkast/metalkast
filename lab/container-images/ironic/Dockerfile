@@ -1,6 +1,4 @@
-# TODO (@danilo404): Fix pip versions after testing, move the image to a proper place
-# TODO (GAL-251): Decide how to handle the ironic image and configuration, templating, etc.
-FROM alpine:3.17.2
+FROM alpine:3.19.0
 
 RUN apk add \
   build-base \
@@ -30,15 +28,15 @@ RUN apk add \
   qemu-img \
   syslinux
 
-RUN pip3 install --no-cache-dir \
-  ironic \
+ARG IRONIC_VERSION=23.1.0
+
+RUN pip3 install --break-system-packages --no-cache-dir \
+  ironic==${IRONIC_VERSION} \
   ironic-inspector \
   python-dracclient \
   python-ibmcclient \
   sushy \
-  sushy-oem-idrac \
-  # Flask 2.3 removes some API and there isn't a fix for this in ironic
-  Flask==2.2.3
+  sushy-oem-idrac
 
 COPY ironic.conf ironic-inspector.conf etc/defaults/
 
