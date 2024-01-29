@@ -1,6 +1,6 @@
-ARG ALPINE_VERSION=3.15.4
+ARG ALPINE_VERSION=3.19.0
 
-FROM alpine:${ALPINE_VERSION}
+FROM alpine:${ALPINE_VERSION} as minirootfs-download
 
 WORKDIR /tmp
 
@@ -14,14 +14,19 @@ RUN mkdir alpine-minirootfs
 RUN wget https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION%.*}/releases/x86_64/alpine-minirootfs-${ALPINE_VERSION}-x86_64.tar.gz
 RUN tar -xvf alpine-minirootfs-${ALPINE_VERSION}-x86_64.tar.gz -C alpine-minirootfs
 
+FROM scratch AS alpine-setup
+COPY --from=minirootfs-download /tmp/alpine-minirootfs /
+
 # Base packages
-RUN apk add --root alpine-minirootfs \
-	busybox-initscripts \
+RUN apk add \
+	busybox-openrc \
+	busybox-mdev-openrc \
+	busybox-extras-openrc \
 	kbd \
 	openrc
 
 # Binaries used by ironic-python-agent during its run.
-RUN apk add --root alpine-minirootfs \
+RUN apk add \
   efibootmgr \
   findmnt \
   lsblk \
@@ -30,11 +35,12 @@ RUN apk add --root alpine-minirootfs \
   util-linux \
   coreutils \
   hdparm \
-  qemu-img
+  qemu-img \
+  lshw
 
 # Some ironic-python-agent dependencies. Not all dependencies are available in apk, but it is still better to install those that are.
 # Also packages required to build other dependencies.
-RUN apk add --root alpine-minirootfs \
+RUN apk add \
 	py3-cryptography \
 	py3-bcrypt \
 	py3-dateutil \
@@ -58,37 +64,39 @@ RUN apk add --root alpine-minirootfs \
 	py3-zeroconf
 
 # Packages required to build API dependencies.
-RUN apk add --root alpine-minirootfs \
+RUN apk add \
 	gcc \
 	python3-dev \
 	musl-dev
 
-# pip can't download packages when it runs in chroot for some reasons.
-# TODO: try to insall everything here and then just copy it to the destination image.
-RUN mkdir alpine-minirootfs/tmp/pip3
-COPY requirements.txt alpine-minirootfs/tmp/pip3/
-RUN pip3 download -r alpine-minirootfs/tmp/pip3/requirements.txt --no-deps -d alpine-minirootfs/tmp/pip3/
-RUN chroot alpine-minirootfs pip3 install --isolated --no-index --find-links /tmp/pip3 -r /tmp/pip3/requirements.txt
-RUN rm -rf alpine-minirootfs/tmp/pip3
+ARG IPA_VERSION=9.8.0
+RUN pip3 install ironic-python-agent==${IPA_VERSION} --break-system-packages
 
-RUN apk del --root alpine-minirootfs \
+RUN apk del \
 	gcc \
 	python3-dev \
 	musl-dev
 
+# Allow to login from console as root.
+RUN passwd -d root
+
+COPY files /
+
+RUN for s in devfs dmesg hwdrivers mdev; do rc-update add $s sysinit; done
+RUN for s in hostname syslog; do rc-update add $s boot; done
+RUN for s in dhcp-all-interfaces networking nameserver-online ironic-python-agent; do rc-update add $s default; done
+
+FROM alpine:${ALPINE_VERSION} as alpine-minirootfs-package
+COPY --from=alpine-setup / /alpine-minirootfs
+
+RUN apk update
 RUN mkdir linux-kernel
 RUN apk fetch linux-lts
 RUN tar -xvf linux-lts-*.apk -C linux-kernel
-
 RUN mv -v linux-kernel/lib/modules alpine-minirootfs/lib/
 
-# Allow to login from console as root.
-RUN chroot alpine-minirootfs passwd -d root
+RUN cd alpine-minirootfs; find . -print0 | cpio --null --create --verbose --owner root:root --format=newc | gzip -6 > /ironic-python-agent.initramfs
 
-COPY files alpine-minirootfs/
-
-RUN for s in devfs dmesg hwdrivers mdev; do chroot alpine-minirootfs rc-update add $s sysinit; done
-RUN for s in hostname syslog; do chroot alpine-minirootfs rc-update add $s boot; done
-RUN for s in dhcp-all-interfaces networking nameserver-online ironic-python-agent; do chroot alpine-minirootfs rc-update add $s default; done
-
-RUN cd alpine-minirootfs; find . -print0 | cpio --null --create --verbose --owner root:root --format=newc | gzip -6 > ../ironic-python-agent.initramfs
+FROM alpine:${ALPINE_VERSION}
+COPY --from=alpine-minirootfs-package /ironic-python-agent.initramfs /
+COPY --from=alpine-minirootfs-package /linux-kernel/boot/vmlinuz-lts /ironic-python-agent.kernel
