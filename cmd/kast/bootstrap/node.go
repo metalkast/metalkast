@@ -165,7 +165,8 @@ func (n *BootstrapNode) configureSSH(privateKey ecdsa.PrivateKey) (*sshConfig, e
 				return err
 			}
 
-			const printHostIpCmd = "hostname -I | cut -d' ' -f1"
+			// https://unix.stackexchange.com/a/167040
+			const printHostIpCmd = "ip route get 1.1.1.1 | grep -oP 'src \\K\\S+'"
 			if _, err := c.SendLine(printHostIpCmd); err != nil {
 				return err
 			}
