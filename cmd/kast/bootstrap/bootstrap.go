@@ -25,6 +25,7 @@ import (
 	clusterapiv1beta1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	bootstrapv1beta1 "sigs.k8s.io/cluster-api/bootstrap/kubeadm/api/v1beta1"
 	kubeadmv1beta1 "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Bootstrap struct {
@@ -223,8 +224,36 @@ func (b *Bootstrap) Run(options BootstrapOptions) error {
 
 	log.Log.Info("Creating target cluster")
 	timeout := time.Hour
-	err = wait.PollUntilContextTimeout(context.TODO(), time.Second*10, timeout, true, func(ctx context.Context) (bool, error) {
-		return nil == targetCluster.List(ctx, &corev1.NodeList{}), nil
+	var lastEventTimestamp time.Time
+	err = wait.PollUntilContextTimeout(context.TODO(), time.Second*1, timeout, true, func(ctx context.Context) (bool, error) {
+		events := &corev1.EventList{}
+		if err := bootstrapCluster.List(ctx, events, &client.ListOptions{Namespace: b.bootstrapClusterConfig.clusterNamespace}); err != nil {
+			log.Log.V(1).Error(err, "failed to list events")
+			return false, nil
+		}
+		slices.SortStableFunc(events.Items, func(a, b corev1.Event) bool {
+			return a.LastTimestamp.Before(&b.LastTimestamp)
+		})
+		for _, e := range events.Items {
+			if e.LastTimestamp.After(lastEventTimestamp) {
+				log.Log.V(1).Info(e.Message, "name", e.InvolvedObject.Name, "kind", e.InvolvedObject.Kind)
+			}
+		}
+		if eventCount := len(events.Items); eventCount > 0 {
+			lastEventTimestamp = events.Items[eventCount-1].LastTimestamp.Time
+		}
+
+		machines := &clusterapiv1beta1.MachineList{}
+		if err := bootstrapCluster.List(ctx, machines); err != nil {
+			log.Log.V(1).Error(err, "failed to list machines")
+			return false, nil
+		}
+		if len(machines.Items) > 1 {
+			return false, fmt.Errorf("expected only single BareMetalHost")
+		} else if len(machines.Items) != 1 {
+			return false, nil
+		}
+		return machines.Items[0].Status.Phase == string(clusterapiv1beta1.MachinePhaseRunning), nil
 	})
 	if err != nil {
 		return fmt.Errorf("timed out after %v waiting for target cluster to be created: %w", timeout, err)
