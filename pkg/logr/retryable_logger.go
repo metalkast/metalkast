@@ -13,7 +13,7 @@ type RetryableLogger struct {
 
 // Debug implements retryablehttp.LeveledLogger.
 func (l *RetryableLogger) Debug(msg string, keysAndValues ...interface{}) {
-	l.log.V(2).Info(msg, keysAndValues...)
+	l.log.V(4).Info(msg, keysAndValues...)
 }
 
 // Error implements retryablehttp.LeveledLogger.

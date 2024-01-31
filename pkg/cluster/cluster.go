@@ -2,19 +2,26 @@ package cluster
 
 import (
 	"fmt"
-	"math"
 	"os"
-	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-retryablehttp"
 	mfc "github.com/manifestival/controller-runtime-client"
+	bmov1alpha1 "github.com/metal3-io/baremetal-operator/apis/metal3.io/v1alpha1"
 	kastlogr "github.com/metalkast/metalkast/pkg/logr"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	clusterapiv1beta1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	clusterctlclient "sigs.k8s.io/cluster-api/cmd/clusterctl/client"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+func init() {
+	utilruntime.Must(bmov1alpha1.AddToScheme(scheme.Scheme))
+	utilruntime.Must(clusterapiv1beta1.AddToScheme(scheme.Scheme))
+}
 
 type Cluster struct {
 	kubeCfgPath string
@@ -40,11 +47,6 @@ func NewCluster(kubeCfgData []byte, kubeCfgDest string, logger logr.Logger) (*Cl
 	retryClient := retryablehttp.NewClient()
 	retryClient.Logger = kastlogr.NewFromLogger(logger.V(1).WithName("retry-client"))
 	retryClient.HTTPClient = kubeClient
-	retryClient.RetryMax =
-		// reach retry max
-		int(math.Ceil(math.Sqrt(float64(retryClient.RetryWaitMax/retryClient.RetryWaitMin)))) +
-			// wait additional 10 minutes
-			int((10*time.Minute)/retryClient.RetryWaitMax)
 
 	kubeControllerClient, err := client.New(config, client.Options{
 		HTTPClient: retryClient.StandardClient(),

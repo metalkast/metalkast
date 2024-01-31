@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/go-logr/logr"
+	"github.com/metalkast/metalkast/cmd/kast/options"
 	"github.com/spf13/cobra"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -27,6 +28,7 @@ func Execute() {
 
 func init() {
 	initLoggers()
+	options.Add(rootCmd)
 }
 
 func initLoggers() {
