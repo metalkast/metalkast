@@ -242,6 +242,7 @@ func generateBareMetalHost(secret corev1.Secret, redfishUrl, suffix string, outp
 			},
 		},
 		"spec": map[string]interface{}{
+			"automatedCleaning": "disabled",
 			"bmc": map[string]interface{}{
 				"address":         fmt.Sprintf("%s-virtualmedia+%s", provider, redfishUrlParsed.JoinPath(systems[0].ODataID)),
 				"credentialsName": secret.Name,
