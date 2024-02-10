@@ -115,6 +115,11 @@ func (rf *RedFish) InsertMedia(url string) error {
 	if err := rf.initCD(); err != nil {
 		return err
 	}
+	if rf.cd.Inserted {
+		if err := rf.cd.EjectMedia(); err != nil {
+			return fmt.Errorf("failed to eject existing inserted media: %w", err)
+		}
+	}
 
 	err := rf.cd.InsertMediaConfig(redfish.VirtualMediaConfig{
 		Image:    url,

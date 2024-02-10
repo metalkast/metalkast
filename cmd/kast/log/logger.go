@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/go-logr/logr"
+	"github.com/metalkast/metalkast/cmd/kast/options"
 	"github.com/muesli/termenv"
 )
 
@@ -233,6 +234,7 @@ type TeaLogSink struct {
 	logs        chan logEntry
 	prefixes    []string
 	teaShutdown chan error
+	levelLimit  int
 }
 
 var _ logr.LogSink = &TeaLogSink{}
@@ -241,15 +243,15 @@ type LoggerOptions struct {
 	OutputPath string
 }
 
-func NewLogger(options LoggerOptions) (logr.Logger, error) {
+func NewLogger(opts LoggerOptions) (logr.Logger, error) {
 	s := spinner.New(spinner.WithSpinner(spinner.Dot))
 	s.Style = spinnerStyle
 	lipgloss.SetColorProfile(termenv.ANSI)
 
 	var logFile *os.File
-	if options.OutputPath != "" {
+	if opts.OutputPath != "" {
 		var err error
-		logFile, err = tea.LogToFile(options.OutputPath, "")
+		logFile, err = tea.LogToFile(opts.OutputPath, "")
 		if err != nil {
 			return logr.Logger{}, err
 		}
@@ -267,6 +269,7 @@ func NewLogger(options LoggerOptions) (logr.Logger, error) {
 	l := &TeaLogSink{
 		logs:        m.logs,
 		teaShutdown: make(chan error),
+		levelLimit:  2 + options.Verbosity,
 	}
 
 	p := tea.NewProgram(m, tea.WithoutCatchPanics(), tea.WithoutSignalHandler(), tea.WithInput(nil))
@@ -286,7 +289,7 @@ func (l *TeaLogSink) Close() error {
 
 // Enabled implements logr.LogSink.
 func (l *TeaLogSink) Enabled(level int) bool {
-	return true
+	return l.levelLimit > level
 }
 
 // Error implements logr.LogSink.
@@ -316,8 +319,9 @@ func (*TeaLogSink) Init(info logr.RuntimeInfo) {
 // WithName implements logr.LogSink.
 func (l *TeaLogSink) WithName(name string) logr.LogSink {
 	newLogger := &TeaLogSink{
-		prefixes: l.prefixes,
-		logs:     l.logs,
+		prefixes:   l.prefixes,
+		logs:       l.logs,
+		levelLimit: l.levelLimit,
 	}
 	newLogger.prefixes = append(newLogger.prefixes, name)
 	return newLogger
@@ -326,8 +330,9 @@ func (l *TeaLogSink) WithName(name string) logr.LogSink {
 // WithValues implements logr.LogSink.
 func (l *TeaLogSink) WithValues(keysAndValues ...interface{}) logr.LogSink {
 	newLogger := &TeaLogSink{
-		prefixes: l.prefixes,
-		logs:     l.logs,
+		prefixes:   l.prefixes,
+		logs:       l.logs,
+		levelLimit: l.levelLimit,
 	}
 	for i, key := range keysAndValues {
 		if vIndex := i + 1; vIndex < len(keysAndValues) {
