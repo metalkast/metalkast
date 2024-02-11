@@ -7,17 +7,10 @@ services:
       context: container-images/redfish-lab
     privileged: true
     volumes:
-      - node-image:/var/www/html
+      - build-output:/var/www/html
     depends_on:
-      node-image-init:
+      image-build:
         condition: service_completed_successfully
-  node-image-init:
-    build: ../image-build
-    privileged: true
-    environment:
-      NETBOOT_BASE_URL: http://192.168.122.1/
-    volumes:
-      - node-image:/virt-customize/output
 
-volumes:
-  node-image:
+include:
+  - ../image-build/docker-compose.yaml

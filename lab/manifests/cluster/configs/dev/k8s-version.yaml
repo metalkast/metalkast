@@ -9,5 +9,5 @@ metadata:
     config.kubernetes.io/local-config: "true"
 data:
   VERSION: v1.28.4
-  NODE_IMAGE_URL: http://192.168.122.1/k8s-v1.28.4-ubuntu-22.04-amd64/cluster-node.img
-  NODE_IMAGE_CHECKSUM: http://192.168.122.1/k8s-v1.28.4-ubuntu-22.04-amd64/cluster-node.img.sha256sum
+  NODE_IMAGE_URL: http://192.168.122.1/k8s-v1.28.4-ubuntu-22.04-20230719-amd64-dev/cluster-node.img
+  NODE_IMAGE_CHECKSUM: http://192.168.122.1/k8s-v1.28.4-ubuntu-22.04-20230719-amd64-dev/cluster-node.img.sha256sum

@@ -1,24 +1,30 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-namespace=$(id -u -n)
+export METALKAST_VERSION=dev
+export KUBERNETES_VERSION="1.28.4"
+export NETBOOT_BASE_URL=http://192.168.122.1/
+
+function compose() {
+    docker compose -p "metalkast-lab-$(id -u -n)" "$@"
+}
 
 # Reset docker-compose
-docker compose -p "${namespace}" down
-docker compose -p "${namespace}" build
-docker compose -p "${namespace}" up -d
+compose down
+compose build
+compose up -d
 
 # Copy manifests
-docker compose -p "${namespace}" exec lab rm -rf /lab
-docker compose -p "${namespace}" exec lab mkdir /lab
-docker compose -p "${namespace}" cp scripts/kast lab:/lab
-docker compose -p "${namespace}" cp manifests lab:/lab
-docker compose -p "${namespace}" cp ../docs/get-started.md lab:/lab
+compose exec lab rm -rf /lab
+compose exec lab mkdir /lab
+compose cp scripts/kast lab:/lab
+compose cp manifests lab:/lab
+compose cp ../docs/get-started.md lab:/lab
 
 # Install kast bin
 make -C .. clean
 make -C .. build
-docker compose -p "${namespace}" cp ../_out/kast lab:/usr/local/bin
+compose cp ../_out/kast lab:/usr/local/bin
 
 # Run bootstrap
-docker compose -p "${namespace}" exec -w /lab lab ./kast
+compose exec -w /lab lab ./kast

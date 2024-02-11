@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-namespace=$(id -u -n)
+namespace=metalkast-lab-$(id -u -n)
 
 docker compose -p "${namespace}" exec -w /lab lab zsh

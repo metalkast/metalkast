@@ -1,8 +1,9 @@
-ARG UBUNTU_VERSION=22.04
+ARG UBUNTU_VERSION
+ARG UBUNTU_RELEASE
 
 FROM alpine AS image-download
 ARG UBUNTU_VERSION
-ARG UBUNTU_RELEASE=20230719
+ARG UBUNTU_RELEASE
 RUN wget "https://cloud-images.ubuntu.com/releases/${UBUNTU_VERSION}/release-${UBUNTU_RELEASE}/ubuntu-${UBUNTU_VERSION}-server-cloudimg-amd64.img" -O /ubuntu.img
 # TODO: check shasum
 
@@ -47,13 +48,14 @@ COPY virt-customize /virt-customize
 WORKDIR /virt-customize
 
 ARG UBUNTU_VERSION
-ENV CONFIG__UBUNTU_VERSION=$UBUNTU_VERSION
+ENV UBUNTU_VERSION=$UBUNTU_VERSION
 
-ARG KUBERNETES_VERSION=1.28.4
-ENV CONFIG__KUBERNETES_VERSION=$KUBERNETES_VERSION
+ARG UBUNTU_RELEASE
+ENV UBUNTU_RELEASE=$UBUNTU_RELEASE
+
+# stabilizes printenv output
+ENV HOSTNAME=image-build
 
 COPY bootstrap-build.sh /virt-customize
-RUN find -type f -print0 | xargs -0 md5sum | tee md5sum.txt && printenv >> md5sum.txt
-
-ENV NETBOOT_BASE_URL=https://dl.metalkast.io/node-images/
+RUN date > builder-timestamp.txt
 ENTRYPOINT ["./build.sh"]
