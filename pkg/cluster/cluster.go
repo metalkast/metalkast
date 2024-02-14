@@ -2,7 +2,9 @@ package cluster
 
 import (
 	"fmt"
+	"math"
 	"os"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/hashicorp/go-retryablehttp"
@@ -47,6 +49,11 @@ func NewCluster(kubeCfgData []byte, kubeCfgDest string, logger logr.Logger) (*Cl
 	retryClient := retryablehttp.NewClient()
 	retryClient.Logger = kastlogr.NewFromLogger(logger.V(1).WithName("retry-client"))
 	retryClient.HTTPClient = kubeClient
+	retryClient.RetryMax =
+		// reach retry wait max
+		int(math.Ceil(math.Sqrt(float64(retryClient.RetryWaitMax/retryClient.RetryWaitMin)))) +
+			// wait additional 10 minutes
+			int((10*time.Minute)/retryClient.RetryWaitMax)
 
 	kubeControllerClient, err := client.New(config, client.Options{
 		HTTPClient: retryClient.StandardClient(),
