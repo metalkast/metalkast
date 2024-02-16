@@ -16,4 +16,5 @@ for v in 1.28.4 1.29.1; do
     compose build
     compose up --exit-code-from image-build
     compose cp image-build:/virt-customize/output .
+    find output -name shasum.txt -delete
 done

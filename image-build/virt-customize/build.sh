@@ -5,8 +5,8 @@ VERSION=k8s-v$KUBERNETES_VERSION-ubuntu-$UBUNTU_VERSION-$UBUNTU_RELEASE-amd64-$M
 OUTPUT_DIR=output/$VERSION
 
 printenv > printenv.txt
-BUILD_ENVIRONMENT_VERSION_FILE=md5sum.txt
-find -type f -not \( -path "./output/*" -o -name $BUILD_ENVIRONMENT_VERSION_FILE \) -print0  | xargs -0 md5sum | tee $BUILD_ENVIRONMENT_VERSION_FILE
+BUILD_ENVIRONMENT_VERSION_FILE=shasum.txt
+find -type f -not \( -path "./output/*" -o -name $BUILD_ENVIRONMENT_VERSION_FILE \) | sort | xargs -L1 shasum -a 256 | tee $BUILD_ENVIRONMENT_VERSION_FILE
 if cmp -s "$BUILD_ENVIRONMENT_VERSION_FILE" "$OUTPUT_DIR/$BUILD_ENVIRONMENT_VERSION_FILE"; then
     echo "Build completed (cached)"
     exit 0
