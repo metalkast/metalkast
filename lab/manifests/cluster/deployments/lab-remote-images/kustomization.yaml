@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - ../../configs/k8s/v1.28.4
+  # - TODO: need to be able to include some published release and integrate site documentation
   - nodes
 
 components:
