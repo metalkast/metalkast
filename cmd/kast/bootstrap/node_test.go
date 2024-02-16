@@ -59,7 +59,7 @@ Created symlink /etc/systemd/system/multi-user.target.wants/ssh.service → /lib
 $ mkdir -p ~/.ssh && echo 'ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBINKN3oG/aCA2rgNU6nTv2XS0WNfvZM+LMNeKVgSNIH/ouUWB6ILlfDtPoUuIfJmnhepEdLtS8zuWqg5qExOnA4=" > ~/.ssh/authorized_keys
 $ cat /etc/ssh/ssh_host_ecdsa_key.pub
 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBB1MuQWdl85Q//TSrvwrUgeprrEBoASD7VD5qkY25IvSl04eKmCSw2uxwtNw6YImFb3/xu9o1rqijr8sFXJpw28= root@k8s-node-1
-$ hostname -I | cut -d' ' -f1
+$ ip route get 1.1.1.1 | grep -oP 'src \K\S+'
 192.168.123.101
 $ exit
 ~.
