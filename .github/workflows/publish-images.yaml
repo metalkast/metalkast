@@ -1,0 +1,14 @@
+name: Publish images
+on: [push]
+jobs:
+  publish-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Publish images
+        run: cd image-build
+  publish-docs:
+    uses: ./.github/workflows/test.yaml
+    needs: [publish-images]
+    secrets: inherit
