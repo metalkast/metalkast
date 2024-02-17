@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 set -eEuo pipefail
 
-VERSION=k8s-v$CONFIG__KUBERNETES_VERSION-ubuntu-$CONFIG__UBUNTU_VERSION-amd64
+VERSION=k8s-v$KUBERNETES_VERSION-ubuntu-$UBUNTU_VERSION-$UBUNTU_RELEASE-amd64-$METALKAST_VERSION
 OUTPUT_DIR=output/$VERSION
-mkdir -p $OUTPUT_DIR
 
-BUILD_ENVIRONMENT_VERSION_FILE=md5sum.txt
+printenv > printenv.txt
+BUILD_ENVIRONMENT_VERSION_FILE=shasum.txt
+find -type f -not \( -path "./output/*" -o -name $BUILD_ENVIRONMENT_VERSION_FILE \) | sort | xargs -L1 shasum -a 256 | tee $BUILD_ENVIRONMENT_VERSION_FILE
 if cmp -s "$BUILD_ENVIRONMENT_VERSION_FILE" "$OUTPUT_DIR/$BUILD_ENVIRONMENT_VERSION_FILE"; then
     echo "Build completed (cached)"
     exit 0
 fi
-rm -rf $OUTPUT_DIR/*
+rm -rf output/*
+mkdir -p $OUTPUT_DIR
 
-printenv | grep -E '^CONFIG__' > install-scripts/.env
+echo KUBERNETES_VERSION=$(printenv KUBERNETES_VERSION) >> install-scripts/.env
 
 ORIGINAL_UBUNTU_IMAGE=ubuntu.img
 CUSTOMIZED_UBUNTU_IMAGE=$OUTPUT_DIR/cluster-node.img
@@ -45,7 +47,7 @@ metadata:
   annotations:
     config.kubernetes.io/local-config: "true"
 data:
-  VERSION: v${CONFIG__KUBERNETES_VERSION}
+  VERSION: v${KUBERNETES_VERSION}
   NODE_IMAGE_URL: https://dl.metalkast.io/node-images/${VERSION}/cluster-node.img
   NODE_IMAGE_CHECKSUM: ${checksum}
 EOF

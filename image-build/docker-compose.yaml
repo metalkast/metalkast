@@ -1,0 +1,17 @@
+services:
+  image-build:
+    build:
+      context: .
+      args:
+        UBUNTU_VERSION: "22.04"
+        UBUNTU_RELEASE: "20230719"
+    privileged: true
+    environment:
+      NETBOOT_BASE_URL: $NETBOOT_BASE_URL
+      METALKAST_VERSION: $METALKAST_VERSION
+      KUBERNETES_VERSION: $KUBERNETES_VERSION
+    volumes:
+      - build-output:/virt-customize/output
+
+volumes:
+  build-output:
