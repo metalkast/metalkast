@@ -30,15 +30,15 @@ const commits = _.zipWith(
 )
 
 async function loadReleases(): Promise<_Object[]> {
-    const client = (process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY && process.env.S3_ENDPOINT) ? new S3Client({
-        credentials: {
-            accessKeyId: process.env.ACCESS_KEY_ID ?? "",
-            secretAccessKey: process.env.SECRET_ACCESS_KEY ?? "",
-        },
-        endpoint: process.env.S3_ENDPOINT,
-        region: "eeur"
-    }) : undefined;
-    if (client) {
+    if (process.env.CI === "true" || process.env.ACCESS_KEY_ID && process.env.SECRET_ACCESS_KEY && process.env.S3_ENDPOINT) {
+        const client = new S3Client({
+            credentials: {
+                accessKeyId: process.env.ACCESS_KEY_ID!!,
+                secretAccessKey: process.env.SECRET_ACCESS_KEY!!,
+            },
+            endpoint: process.env.S3_ENDPOINT!!,
+            region: "eeur"
+        });
         const command = new ListObjectsV2Command({
             Bucket: "metalkast",
         });
