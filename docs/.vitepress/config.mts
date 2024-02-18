@@ -20,6 +20,7 @@ export default defineConfig({
         text: 'Reference',
         items: [
           { text: 'Annotations', link: '/annotations' },
+          { text: 'Image Releases', link: '/image-releases' },
         ]
       }
     ],
@@ -27,5 +28,5 @@ export default defineConfig({
       prev: false,
       next: false,
     },
-  }
+  },
 })
