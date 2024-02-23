@@ -245,6 +245,11 @@ spec:
       image:
         checksum: http://192.168.122.1/k8s-cluster-node-1.27.2-ubuntu-22.04-amd64.img.sha256sum
         url: http://192.168.122.1/k8s-cluster-node-1.27.2-ubuntu-22.04-amd64.img
+---
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: MachineDeployment
+metadata:
+  name: root
 `,
 			))),
 		},
