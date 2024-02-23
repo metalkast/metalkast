@@ -231,8 +231,8 @@ func (b *Bootstrap) Run(options BootstrapOptions) error {
 			log.Log.V(1).Error(err, "failed to list events")
 			return false, nil
 		}
-		slices.SortStableFunc(events.Items, func(a, b corev1.Event) bool {
-			return a.LastTimestamp.Before(&b.LastTimestamp)
+		slices.SortStableFunc(events.Items, func(a, b corev1.Event) int {
+			return a.LastTimestamp.Compare(b.LastTimestamp.Time)
 		})
 		for _, e := range events.Items {
 			if e.LastTimestamp.After(lastEventTimestamp) {
