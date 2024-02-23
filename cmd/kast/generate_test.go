@@ -198,7 +198,7 @@ sops:
 	want := `apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
-  name: k8s-nodes-a-1
+  name: node-1
 spec:
   automatedCleaning: disabled
   bmc:
@@ -212,7 +212,7 @@ spec:
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
-  name: k8s-nodes-a-2
+  name: node-2
 spec:
   automatedCleaning: disabled
   bmc:
@@ -226,7 +226,7 @@ spec:
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
-  name: k8s-nodes-b-1
+  name: node-3
   namespace: test-ns
 spec:
   automatedCleaning: disabled
@@ -241,7 +241,7 @@ spec:
 apiVersion: metal3.io/v1alpha1
 kind: BareMetalHost
 metadata:
-  name: k8s-nodes-b-2
+  name: node-4
   namespace: test-ns
 spec:
   automatedCleaning: disabled
