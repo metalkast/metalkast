@@ -1,13 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1alpha1
 kind: Component
 
-resources:
-  - k8s-config.yaml
-  - k8s-version.yaml
-
-components:
-  - https://github.com/metalkast/metalkast//manifests/cluster/base
-
 patches:
   - target:
       kind: KubeadmControlPlane
