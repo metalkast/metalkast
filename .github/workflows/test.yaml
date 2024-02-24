@@ -1,5 +1,7 @@
 name: Generate test report
-on: [push]
+on:
+  push:
+  workflow_call:
 jobs:
   coverage:
     runs-on: ubuntu-latest
