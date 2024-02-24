@@ -2,9 +2,9 @@
 
 ---
 
-metalkast is a baremetal Kubernetes cluster deployer.
+metalkast provides easy bootstrap and management of Kubernetes clusters on bare metal.
 
-It is currently possible to bootstrap a baremetal cluster but the reference configuration is not recommended for production use.
+It is currently possible to bootstrap a bare metal cluster but the reference configuration is not recommended for production use.
 
 ## Documentation
 
