@@ -23,6 +23,8 @@ RUN apt-get update -y && \
     	vim \
     	dnsutils \
         nginx \
+        fcgiwrap \
+        spawn-fcgi \
         # ipmi console access
         ipmitool \
         freeipmi-tools \
@@ -87,7 +89,9 @@ EOF
 RUN mkdir -p /root/.kube
 
 RUN sed -i -E 's/(hosts:\s+files)/\1 libvirt_guest/' /etc/nsswitch.conf
+
 RUN sed -i 's/listen 80/listen 192.168.122.1:80/' /etc/nginx/sites-enabled/default
+COPY nginx-git /etc/nginx/sites-enabled/
 
 RUN mkdir -p /opt/config
 COPY lab-network.xml /opt/config/lab-network.xml
@@ -96,6 +100,7 @@ COPY hosts-setup.sh /usr/bin/hosts-setup.sh
 COPY redfish.sh /usr/bin/redfish.sh
 COPY dummy-host.sh /usr/bin/dummy-host.sh
 COPY copy-kubeconfigs.sh /usr/bin/copy-kubeconfigs.sh
+COPY setup-workspace-git-repo.sh /usr/bin/setup-workspace-git-repo.sh
 COPY htpasswd /opt/config/htpasswd
 COPY sushy.conf.tmpl /opt/config/sushy.conf.tmpl
 

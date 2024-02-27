@@ -3,9 +3,10 @@ kind: Component
 
 resources:
   - k8s-config.yaml
+  - k8s-version.yaml
 
 components:
-  - ../../base
+  - https://github.com/metalkast/metalkast//manifests/cluster/base
 
 patches:
   - target:

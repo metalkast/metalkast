@@ -19,6 +19,9 @@ compose exec lab rm -rf /lab
 compose exec lab mkdir /lab
 compose cp scripts/kast lab:/lab
 compose cp manifests lab:/lab
+
+# Use workspace manifests
+compose exec lab find /lab/manifests/ -type f -exec sed -i 's#https://github.com/metalkast#http://192.168.122.1:8080#' {} \;
 compose cp ../docs/get-started.md lab:/lab
 
 # Install kast bin

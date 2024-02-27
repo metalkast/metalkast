@@ -8,6 +8,7 @@ services:
     privileged: true
     volumes:
       - build-output:/var/www/html
+      - ../manifests:/manifests
     depends_on:
       image-build:
         condition: service_completed_successfully
