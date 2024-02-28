@@ -3,3 +3,4 @@ copy-in install-scripts:/tmp/
 run-command chmod +x /tmp/install-scripts/*
 run-command /tmp/install-scripts/install.sh
 delete /tmp/*
+copy-in etc:/

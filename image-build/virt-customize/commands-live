@@ -2,4 +2,3 @@ copy-in ssh-access.sh:/tmp/
 run-command chmod +x /tmp/ssh-access.sh
 run-command /tmp/ssh-access.sh
 delete /tmp/*
-run-command ln -s /run/netplan /etc/netplan
