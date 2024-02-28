@@ -236,7 +236,7 @@ func generateBareMetalHost(secret corev1.Secret, redfishUrl, suffix string, outp
 		"apiVersion": "metal3.io/v1alpha1",
 		"kind":       "BareMetalHost",
 		"metadata": map[string]interface{}{
-			"name": secret.Name + suffix,
+			"name": fmt.Sprintf("node-%d", outputIndex),
 			"annotations": map[string]interface{}{
 				kioutil.IndexAnnotation: fmt.Sprint(outputIndex),
 			},
