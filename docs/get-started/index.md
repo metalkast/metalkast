@@ -27,7 +27,7 @@ brew install ipmitool
 **Ubuntu**
 
 ```shell
-apt-get install install -y ipmitool
+apt-get install -y ipmitool
 ```
 
 ## Prepare manifests
