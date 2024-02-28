@@ -20,7 +20,6 @@ There's currently no Long Term Support (LTS) for any of the releases.
             +
             commits.filter(c => releases.some(r => r.version === c.abbreviatedCommit))
                 .map((c, i, releaseCommits) =>
-                    // `## Version [${c.abbreviatedCommit}](https://github.com/metalkast/metalkast/commits/${c.abbreviatedCommit}/)\n` +
                     `## Release ${c.time.toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' })}\n` +
                     `Version: [${c.abbreviatedCommit}](https://github.com/metalkast/metalkast/tree/${c.abbreviatedCommit}/)\n` +
                     ((i < releaseCommits.length - 1) ?
