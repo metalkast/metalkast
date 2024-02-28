@@ -36,7 +36,7 @@ To use kast, you'll first need to prepare ClusterAPI and system manifests.
 
 ### Cluster manifests
 
-Create a kustomization layer in `{{ data.clusterManifestsPath }}` directory and use the example below are reference for your configuration.
+Create a kustomization layer in `{{ data.clusterManifestsPath }}` directory and use the example below as reference for your configuration.
 
 To use metalkast prebuilt Kubernetes cluster images, you can include preconfigured `k8s-cluster-version` ConfigMap like in the example below.
 You can find the list of all published releases on [Image Releases](/image-releases) page.
