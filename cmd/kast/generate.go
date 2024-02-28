@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getsops/sops/v3/decrypt"
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/manifestival/manifestival"
 	"github.com/metalkast/metalkast/cmd/kast/log"
 	"github.com/spf13/cobra"
 	"github.com/stmcginnis/gofish"
-	"go.mozilla.org/sops/v3/decrypt"
 	"golang.org/x/sync/errgroup"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

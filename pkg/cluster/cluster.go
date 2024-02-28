@@ -1,6 +1,7 @@
 package cluster
 
 import (
+	"context"
 	"fmt"
 	"math"
 	"os"
@@ -82,15 +83,17 @@ func (c Cluster) ApplyPaths(paths ...string) error {
 }
 
 func (c *Cluster) Move(target *Cluster, namespace string) error {
-	clusterctlClient, err := clusterctlclient.New("")
+	clusterctlClient, err := clusterctlclient.New(context.TODO(), "")
 	if err != nil {
 		return fmt.Errorf("failed to init Cluster API client: %w", err)
 	}
-	err = clusterctlClient.Move(clusterctlclient.MoveOptions{
-		FromKubeconfig: clusterctlclient.Kubeconfig{Path: c.kubeCfgPath},
-		ToKubeconfig:   clusterctlclient.Kubeconfig{Path: target.kubeCfgPath},
-		Namespace:      namespace,
-	})
+	err = clusterctlClient.Move(
+		context.TODO(),
+		clusterctlclient.MoveOptions{
+			FromKubeconfig: clusterctlclient.Kubeconfig{Path: c.kubeCfgPath},
+			ToKubeconfig:   clusterctlclient.Kubeconfig{Path: target.kubeCfgPath},
+			Namespace:      namespace,
+		})
 	if err != nil {
 		return fmt.Errorf("failed to move Cluster API objects: %w", err)
 	}
