@@ -4,7 +4,10 @@ import { data } from './index.data.ts'
 
 # Get started
 
-This guide will help you deploying a basic Kubernetes cluster on your baremetal machines.
+This guide will help you deploying a basic Kubernetes cluster on your bare metal machines.
+
+> [!IMPORTANT]
+> The current setup requires a working DHCP server configured to assign IPs and nameservers to target nodes.
 
 ## Install kast binary
 
