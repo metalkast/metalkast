@@ -1,9 +1,0 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-  # - TODO: need to be able to include some published release and integrate site documentation
-  - nodes
-
-components:
-  - ../../overlays/lab-common

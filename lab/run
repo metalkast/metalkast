@@ -14,6 +14,8 @@ compose down
 compose build
 compose up -d
 
+npm run generate-manifests
+
 # Copy manifests
 compose exec lab rm -rf /lab
 compose exec lab mkdir /lab
@@ -22,7 +24,7 @@ compose cp manifests lab:/lab
 
 # Use workspace manifests
 compose exec lab find /lab/manifests/ -type f -exec sed -i 's#https://github.com/metalkast#http://192.168.122.1:8080#' {} \;
-compose cp ../docs/get-started.md lab:/lab
+compose cp ../docs/get-started/index.md lab:/lab
 
 # Install kast bin
 make -C .. clean

@@ -12,7 +12,7 @@ hero:
   actions:
     - theme: brand
       text: Get started
-      link: /get-started
+      link: /get-started/
   image: /metalkast.png
 
 features:

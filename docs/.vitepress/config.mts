@@ -19,7 +19,8 @@ export default defineConfig({
       {
         text: 'Guide',
         items: [
-          { text: 'Get started', link: '/get-started' },
+          { text: 'Get started', link: '/get-started/' },
+          { text: 'SOPS Integration', link: '/sops' },
         ]
       },
       {
