@@ -1,6 +1,6 @@
 # SOPS integration
 
-You can encrypt these secrets with [SOPS][sops]:
+You can encrypt secrets with [SOPS][sops]:
 
 ```shell
 sops \
