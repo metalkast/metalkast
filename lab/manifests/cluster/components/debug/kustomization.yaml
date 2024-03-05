@@ -13,5 +13,5 @@ patches:
           systemctl enable ssh
           sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
           systemctl restart ssh
-          useradd bootstrap -m -p $(openssl passwd bootstrap) -G sudo
-          echo 'bootstrap ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/bootstrap
+          useradd debug -m -p $(openssl passwd debug) -G sudo
+          echo 'debug ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/debug
