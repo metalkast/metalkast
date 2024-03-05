@@ -49,10 +49,10 @@
   --vp-c-default-3: var(--vp-c-gray-3);
   --vp-c-default-soft: var(--vp-c-gray-soft);
 
-  --vp-c-blue-1: #2D73E6;
-  --vp-c-blue-2: #589AEF;
-  --vp-c-blue-3: #66B2F6;
-  --vp-c-blue-soft: #84BCF6;
+  --vp-c-blue-1: #0089FF;
+  --vp-c-blue-2: #00B0FF;
+  --vp-c-blue-3: #00D1FF;
+  --vp-c-blue-soft: #66B2F6;
   --vp-c-brand-1: var(--vp-c-blue-1);
   --vp-c-brand-2: var(--vp-c-blue-2);
   --vp-c-brand-3: var(--vp-c-blue-3);
@@ -97,8 +97,8 @@
 :root {
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: -webkit-linear-gradient(120deg,
-      #2D73E6 30%,
-      #66B2F6);
+      #0089FF 30%,
+      #00D1FF);
 
   --vp-home-hero-image-background-image: linear-gradient(-45deg,
       #589AEF 50%,
