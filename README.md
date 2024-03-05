@@ -1,5 +1,7 @@
 # metalkast
 
+<img src="https://github.com/metalkast/metalkast/raw/main/docs/public/metalkast.png" width="100">
+
 ---
 
 metalkast provides easy bootstrap and management of Kubernetes clusters on bare metal.
