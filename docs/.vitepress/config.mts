@@ -11,7 +11,7 @@ export default defineConfig({
     ['link', { rel: 'manifest', href: '/site.webmanifest' }],
   ],
   themeConfig: {
-    logo: '/metalkast.png',
+    logo: '/favicon.ico',
     socialLinks: [
       { icon: 'github', link: 'https://github.com/metalkast/metalkast' }
     ],
