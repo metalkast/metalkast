@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"reflect"
 	"regexp"
 	"strings"
 	"time"
@@ -86,6 +87,7 @@ func bootstrapClusterConfigFromManifests(manifests manifestival.Manifest) (*boot
 	setup.bootstrapClusterManifests, err = manifests.Filter(
 		manifestival.Not(manifestival.In(bmhManifest)),
 		manifestival.Not(manifestival.ByAnnotation(bootstrapClusterApplyAnnotation, "false")),
+		manifestival.Not(manifestival.ByKind(reflect.TypeOf(clusterapiv1beta1.MachineDeployment{}).Name())),
 	).Transform(func(u *unstructured.Unstructured) error {
 		if u.GroupVersionKind() == kubeadmv1beta1.GroupVersion.WithKind("KubeadmControlPlane") {
 			unstructured.SetNestedField(u.Object, int64(1), "spec", "replicas")
@@ -249,7 +251,7 @@ func (b *Bootstrap) Run(options BootstrapOptions) error {
 			return false, nil
 		}
 		if len(machines.Items) > 1 {
-			return false, fmt.Errorf("expected only single BareMetalHost")
+			return false, fmt.Errorf("expected only single Machine")
 		} else if len(machines.Items) != 1 {
 			return false, nil
 		}
