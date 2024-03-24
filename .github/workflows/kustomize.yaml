@@ -1,0 +1,12 @@
+name: Test kustomize
+on: [push]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build all kustomize layers
+        run: ./scripts/build-kustomize.sh
