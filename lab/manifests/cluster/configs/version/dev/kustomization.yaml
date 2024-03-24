@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+configMapGenerator:
+  - name: metalkast.io/cluster-version
+    options:
+      annotations:
+        config.kubernetes.io/local-config: "true"
+    literals:
+      - k8s_version=v1.28.4
+      - node_image_url=http://192.168.122.1/k8s-v1.28.4-ubuntu-22.04-20230719-amd64-dev/cluster-node.img
+      - node_image_checksum=http://192.168.122.1/k8s-v1.28.4-ubuntu-22.04-20230719-amd64-dev/cluster-node.img.sha256sum
