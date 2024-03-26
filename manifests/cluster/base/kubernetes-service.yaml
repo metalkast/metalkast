@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    metalkast.io/bootstrap-cluster-apply: "false"
+  labels:
+    component: kube-apiserver
+    tier: control-plane
+  # must not be named "kubernetes". otherwise the workloads in kube-system (such as coredns) will try to connect here
+  # instead of going to kubernetes.default.svc. Since the port is different (443, and not 6443), it will fail.
+  name: kubernetes-external
+  namespace: kube-system
+spec:
+  selector:
+    component: kube-apiserver
+    tier: control-plane
+  ports:
+  - name: https
+    port: 6443
+    protocol: TCP
+    targetPort: 6443
+  type: LoadBalancer
+---
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: api-server
+  annotations:
+    metalkast.io/bootstrap-cluster-apply: "false"
+spec:
+  blocks:
+  - cidr: "__API_SERVER_IP_PLACEHOLDER__/32"

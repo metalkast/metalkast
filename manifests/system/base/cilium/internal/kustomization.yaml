@@ -5,12 +5,16 @@ helmCharts:
 - name: cilium
   releaseName: cilium
   namespace: kube-system
-  version: 1.14.4
+  version: 1.15.2
   repo: https://helm.cilium.io/
+  # TODO: ensure operator runs on control-plane nodes
   valuesInline:
     kubeProxyReplacement: true
-    k8sServiceHost: "__PLACEHOLDER__"
+    k8sServiceHost: "this need to be set but will be replaced"
     k8sServicePort: 6443
-
-commonAnnotations:
-  metalkast.io/bootstrap-cluster-apply: "false"
+    l2announcements:
+      enabled: true
+    # https://docs.cilium.io/en/latest/network/l2-announcements/#sizing-client-rate-limit
+    k8sClientRateLimit:
+      qps: 10
+      burst: 30

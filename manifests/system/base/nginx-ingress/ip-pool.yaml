@@ -1,0 +1,8 @@
+---
+apiVersion: "cilium.io/v2alpha1"
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: ingress
+spec:
+  blocks:
+  - cidr: "__INGRESS_IP_PLACEHOLDER__/32"
