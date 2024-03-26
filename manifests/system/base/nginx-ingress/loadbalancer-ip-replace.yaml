@@ -1,7 +1,7 @@
 source:
   kind: ConfigMap
-  name: nginx-ingress-config
-  fieldPath: data.ip
+  name: metalkast.io/system-config
+  fieldPath: data.ingress_ip
 targets:
   - select:
       kind: Service

@@ -43,13 +43,13 @@ cat <<EOF > $OUTPUT_DIR/config.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: k8s-cluster-version
+  name: metalkast.io/cluster-version
   annotations:
     config.kubernetes.io/local-config: "true"
 data:
-  VERSION: v${KUBERNETES_VERSION}
-  NODE_IMAGE_URL: https://dl.metalkast.io/node-images/${VERSION}/cluster-node.img
-  NODE_IMAGE_CHECKSUM: ${checksum}
+  version: v${KUBERNETES_VERSION}
+  node_image_url: https://dl.metalkast.io/node-images/${VERSION}/cluster-node.img
+  node_image_checksum: ${checksum}
 EOF
 
 ./bootstrap-build.sh
