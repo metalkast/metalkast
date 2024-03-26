@@ -1,7 +1,7 @@
 source:
-  kind: ConfigMap
-  name: metalkast.io/system-config
-  fieldPath: data.control_plane_hostname
+  kind: Env
+  name: cilium-apiserver-endpoint-env
+  fieldPath: env
 targets:
   - select:
       group: apps
@@ -10,7 +10,7 @@ targets:
       name: cilium-operator
       namespace: kube-system
     fieldPaths:
-      - spec.template.spec.containers.*.env.[name=KUBERNETES_SERVICE_HOST].value
+      - spec.template.spec.containers.*.env.[name=KUBERNETES_SERVICE_HOST]
   - select:
       group: apps
       version: v1
@@ -18,5 +18,5 @@ targets:
       name: cilium
       namespace: kube-system
     fieldPaths:
-      - spec.template.spec.initContainers.*.env.[name=KUBERNETES_SERVICE_HOST].value
-      - spec.template.spec.containers.*.env.[name=KUBERNETES_SERVICE_HOST].value
+      - spec.template.spec.initContainers.*.env.[name=KUBERNETES_SERVICE_HOST]
+      - spec.template.spec.containers.*.env.[name=KUBERNETES_SERVICE_HOST]

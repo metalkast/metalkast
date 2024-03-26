@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"net"
 	"path"
 	"reflect"
 	"regexp"
@@ -16,6 +17,7 @@ import (
 	"github.com/metalkast/metalkast/cmd/kast/log"
 	"github.com/metalkast/metalkast/pkg/cluster"
 	"github.com/metalkast/metalkast/pkg/kustomize"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -23,7 +25,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/tools/clientcmd"
 	clusterapiv1beta1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	bootstrapv1beta1 "sigs.k8s.io/cluster-api/bootstrap/kubeadm/api/v1beta1"
 	kubeadmv1beta1 "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1beta1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -210,24 +214,10 @@ func (b *Bootstrap) Run(options BootstrapOptions) error {
 		return fmt.Errorf("failed to apply manifests: %w", err)
 	}
 
-	targetClusterKubeconfig, err := b.getTargetClusterKubeconfig(bootstrapCluster)
-	if err != nil {
-		return fmt.Errorf("failed to get target cluster kubeconfig: %w", err)
-	}
-
-	targetCluster, err := cluster.NewCluster(
-		targetClusterKubeconfig,
-		path.Join(path.Dir(bootstrapNode.kubeCfgDest), "target.kubeconfig"),
-		log.Log.V(1).WithName("target cluster"),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to initialize target cluster client: %w", err)
-	}
-
 	log.Log.Info("Creating target cluster")
-	timeout := time.Hour
 	var lastEventTimestamp time.Time
-	err = wait.PollUntilContextTimeout(context.TODO(), time.Second*1, timeout, true, func(ctx context.Context) (bool, error) {
+	var targetClusterInitialNodeIP string
+	err = wait.PollUntilContextTimeout(context.TODO(), time.Second*1, time.Hour, true, func(ctx context.Context) (bool, error) {
 		events := &corev1.EventList{}
 		if err := bootstrapCluster.List(ctx, events, &client.ListOptions{Namespace: b.bootstrapClusterConfig.clusterNamespace}); err != nil {
 			log.Log.V(1).Error(err, "failed to list events")
@@ -245,25 +235,86 @@ func (b *Bootstrap) Run(options BootstrapOptions) error {
 			lastEventTimestamp = events.Items[eventCount-1].LastTimestamp.Time
 		}
 
-		machines := &clusterapiv1beta1.MachineList{}
-		if err := bootstrapCluster.List(ctx, machines); err != nil {
-			log.Log.V(1).Error(err, "failed to list machines")
+		bareMetalHostsLists := &bmov1alpha1.BareMetalHostList{}
+		if err := bootstrapCluster.List(ctx, bareMetalHostsLists); err != nil {
+			log.Log.V(1).Error(err, "failed to list bareMetalHostsLists")
 			return false, nil
 		}
-		if len(machines.Items) > 1 {
-			return false, fmt.Errorf("expected only single Machine")
-		} else if len(machines.Items) != 1 {
+		if len(bareMetalHostsLists.Items) > 1 {
+			return false, fmt.Errorf("expected only single BareMetalHost")
+		} else if len(bareMetalHostsLists.Items) != 1 {
 			return false, nil
 		}
-		return machines.Items[0].Status.Phase == string(clusterapiv1beta1.MachinePhaseRunning), nil
+
+		if bareMetalHostsLists.Items[0].Status.HardwareDetails != nil {
+			for _, nic := range bareMetalHostsLists.Items[0].Status.HardwareDetails.NIC {
+				ip := net.ParseIP(nic.IP)
+				if ip == nil || ip.To4() == nil {
+					continue
+				}
+				conn, err := net.DialTimeout("tcp", net.JoinHostPort(nic.IP, "6443"), time.Second*2)
+				if err != nil {
+					continue
+				}
+				conn.Close()
+				targetClusterInitialNodeIP = nic.IP
+				return true, nil
+			}
+		}
+		return false, nil
 	})
 	if err != nil {
-		return fmt.Errorf("timed out after %v waiting for target cluster to be created: %w", timeout, err)
+		return fmt.Errorf("timed out waiting for target cluster to be created: %w", err)
+	}
+
+	targetClusterKubeconfig, err := b.getTargetClusterKubeconfig(bootstrapCluster)
+	if err != nil {
+		return fmt.Errorf("failed to get target cluster kubeconfig: %w", err)
+	}
+
+	temporaryTargetClusterKubeconfig, err := kubeconfigWithReplacedHost(targetClusterKubeconfig, targetClusterInitialNodeIP)
+	if err != nil {
+		return fmt.Errorf("failed to create temporary target cluster kubeconfig: %w", err)
+	}
+
+	targetCluster, err := cluster.NewCluster(
+		temporaryTargetClusterKubeconfig,
+		path.Join(path.Dir(bootstrapNode.kubeCfgDest), "target.kubeconfig"),
+		log.Log.V(1).WithName("target cluster"),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to initialize target cluster client: %w", err)
 	}
 
 	log.Log.Info("Applying initial manifests to target cluster")
 	if err := targetCluster.Applier.ApplyManifest(b.targetClusterPreMoveManifests); err != nil {
 		return fmt.Errorf("failed to apply pre-move manifests to target cluster: %w", err)
+	}
+
+	log.Log.Info("Waiting for target cluster to finish provisioning")
+	if err := wait.PollUntilContextTimeout(context.TODO(), time.Second*1, time.Minute*5, true, func(ctx context.Context) (bool, error) {
+		clusterList := &clusterv1.ClusterList{}
+		if err := bootstrapCluster.List(ctx, clusterList); err != nil {
+			log.Log.V(1).Error(err, "failed to list clusters")
+			return false, nil
+		}
+		if len(clusterList.Items) > 1 {
+			return false, fmt.Errorf("expected only single clusters")
+		} else if len(clusterList.Items) != 1 {
+			return false, nil
+		}
+		return clusterList.Items[0].Status.ControlPlaneReady, nil
+	}); err != nil {
+		return fmt.Errorf("timed out waiting for target cluster to be provisioned: %w", err)
+	}
+
+	targetCluster, err = cluster.NewCluster(
+		targetClusterKubeconfig,
+		path.Join(path.Dir(bootstrapNode.kubeCfgDest), "target.kubeconfig"),
+		log.Log.V(1).WithName("target cluster"),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to initialize target cluster client: %w", err)
 	}
 
 	log.Log.Info("Moving the cluster")
@@ -315,4 +366,22 @@ func (b *Bootstrap) getTargetClusterKubeconfig(bootstrapCluster *cluster.Cluster
 	}
 
 	return kubeconfigSecret.Data["value"], nil
+}
+
+func kubeconfigWithReplacedHost(kubeconfigContentInput []byte, newHost string) ([]byte, error) {
+	kubeconfig, err := clientcmd.Load(kubeconfigContentInput)
+	if err != nil {
+		return nil, err
+	}
+	clusters := maps.Keys(kubeconfig.Clusters)
+	if len(clusters) != 1 {
+		return nil, fmt.Errorf("expected single cluster in kubeconfig")
+	}
+	kubeconfig.Clusters[clusters[0]].Server = fmt.Sprintf("https://%s:6443", newHost)
+
+	kubeconfigContentResult, err := clientcmd.Write(*kubeconfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to render kubeconfig: %w", err)
+	}
+	return kubeconfigContentResult, nil
 }

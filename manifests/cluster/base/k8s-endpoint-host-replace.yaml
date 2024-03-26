@@ -11,3 +11,10 @@ targets:
     - spec.controlPlaneEndpoint.host
   options:
     create: true
+- select:
+    kind: ConfigMap
+    name: cilium-apiserver-endpoint
+  fieldPaths:
+    - data.KUBERNETES_SERVICE_HOST
+  options:
+    create: true
