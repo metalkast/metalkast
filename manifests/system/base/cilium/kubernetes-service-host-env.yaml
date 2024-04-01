@@ -1,0 +1,12 @@
+apiVersion: none
+kind: Env
+metadata:
+  name: cilium-apiserver-endpoint-env
+  annotations:
+    config.kubernetes.io/local-config: "true"
+env:
+  name: KUBERNETES_SERVICE_HOST
+  valueFrom:
+    configMapKeyRef:
+      name: cilium-apiserver-endpoint
+      key: KUBERNETES_SERVICE_HOST

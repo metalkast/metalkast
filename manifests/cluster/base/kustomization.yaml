@@ -3,6 +3,16 @@ kind: Component
 
 resources:
   - internal/base
+  - kubernetes-service.yaml
+
+configMapGenerator:
+  - name: cilium-apiserver-endpoint
+    namespace: kube-system
+    options:
+      disableNameSuffixHash: true
+      annotations:
+        metalkast.io/bootstrap-cluster-apply: "false"
+
 
 patches:
   - target:
@@ -19,7 +29,8 @@ patches:
               checksum: <IMAGE_URL>.sha256sum
 
 replacements:
-  - path: k8s-endpoint-replace.yaml
+  - path: k8s-endpoint-host-replace.yaml
+  - path: k8s-endpoint-ip-replace.yaml
   - path: k8s-image-url-replace.yaml
   - path: k8s-image-checksum-replace.yaml
   - path: k8s-version-replace.yaml

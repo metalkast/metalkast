@@ -9,6 +9,7 @@ function remoteParams(options: ManifestOptions) {
 interface ClusterManifestOptions extends ManifestOptions {
   k8sVersion: string;
   controlPlaneHostname: string;
+  controlPlaneIP: string;
   extraCompoents?: string[];
 }
 
@@ -19,7 +20,6 @@ kind: Kustomization
 
 resources:
   - ${options.k8sVersion} # [!code highlight]
-  - k8s-config.yaml
   - nodes-secrets.yaml
   - nodes.yaml
 
@@ -30,6 +30,7 @@ configMapGenerator:
         config.kubernetes.io/local-config: "true"
     literals:
       - control_plane_hostname=${options.controlPlaneHostname} # [!code highlight]
+      - control_plane_ip=${options.controlPlaneIP} # [!code highlight]
 
 components:
   - https://github.com/metalkast/metalkast//manifests/cluster/base${remoteParams(options)}
@@ -39,7 +40,6 @@ ${(options.extraCompoents ?? []).map(c => `  - ${c}`).join("\n")}
 }
 
 interface SystemManifestOptions extends ManifestOptions {
-  controlPlaneHostname: string;
   ingressIP: string;
   ingressDomain: string;
 }
@@ -55,7 +55,6 @@ configMapGenerator:
       annotations:
         config.kubernetes.io/local-config: "true"
     literals:
-      - control_plane_hostname=${options.controlPlaneHostname} # [!code highlight]
       - ingress_ip=${options.ingressIP} # [!code highlight]
       - ingress_domain=${options.ingressDomain} # [!code highlight]
 

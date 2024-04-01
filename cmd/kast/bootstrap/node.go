@@ -230,17 +230,17 @@ func initKubeadm(c sshConfig) error {
 		mount /dev/$disk /var/lib/containerd
 		systemctl start containerd
 		kubeVersion=$(ctr -n k8s.io i ls | grep -o -P "(?<=kube-apiserver:)v1\.[0-9]+\.[0-9]+")
-		kubeadm init --kubernetes-version $kubeVersion --pod-network-cidr {{ .flannelPodCidr }} --control-plane-endpoint {{ .hostname }}
+		# TODO: parse skip phases and pod network cidr from manifests
+		kubeadm init --kubernetes-version $kubeVersion --pod-network-cidr 10.244.0.0/16 --control-plane-endpoint {{ .hostname }} --skip-phases=addon/kube-proxy
 		export KUBECONFIG=/etc/kubernetes/admin.conf
 		kubectl taint nodes --all node-role.kubernetes.io/control-plane:NoSchedule-
-		kubectl apply -f https://github.com/flannel-io/flannel/releases/download/v0.21.2/kube-flannel.yml
+		kubectl -n kube-system create configmap cilium-apiserver-endpoint --from-literal=KUBERNETES_SERVICE_HOST={{ .hostname }}
 	'`
 	tmpl := template.Must(template.New("notImportant").Parse(kubeadmInitCommandTemplate))
 	kubeadmInitCommandBuilder := strings.Builder{}
 
 	if err = tmpl.Execute(&kubeadmInitCommandBuilder, map[string]interface{}{
-		"hostname":       c.hostIP,
-		"flannelPodCidr": "10.244.0.0/16",
+		"hostname": c.hostIP,
 	}); err != nil {
 		return fmt.Errorf("failed to execute template: %s", err)
 	}
