@@ -375,7 +375,7 @@ func kubeconfigWithReplacedHost(kubeconfigContentInput []byte, newHost string) (
 	}
 	clusters := maps.Keys(kubeconfig.Clusters)
 	if len(clusters) != 1 {
-		return nil, fmt.Errorf("expected single cluster in kubeconfig")
+		return nil, fmt.Errorf("expected single cluster in kubeconfig, got %v", len(clusters))
 	}
 	kubeconfig.Clusters[clusters[0]].Server = fmt.Sprintf("https://%s:6443", newHost)
 
