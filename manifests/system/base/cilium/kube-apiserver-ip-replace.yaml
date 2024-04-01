@@ -1,7 +1,7 @@
 source:
   kind: ConfigMap
-  name: kube-apiserver-config
-  fieldPath: data.ip
+  name: metalkast.io/system-config
+  fieldPath: data.control_plane_hostname
 targets:
   - select:
       group: apps

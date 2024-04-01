@@ -48,7 +48,6 @@ You can find the list of all published releases on [Image Releases](/image-relea
 ::: code-group
 
 <<< @/get-started/manifests/cluster/deployments/example/kustomization.yaml
-<<< @/../lab/manifests/cluster/deployments/dev/k8s-config.yaml
 
 :::
 
@@ -72,8 +71,6 @@ Create a kustomization layer in `{{ data.systemManifestsPath }}` directory and u
 ::: code-group
 
 <<< @/get-started/manifests/system/deployments/example/kustomization.yaml
-<<< @/../lab/manifests/system/deployments/dev/kube-apiserver-config.yaml
-<<< @/../lab/manifests/system/deployments/dev/ingress-config.yaml
 
 :::
 
