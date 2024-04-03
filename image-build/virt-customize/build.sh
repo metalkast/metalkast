@@ -47,7 +47,7 @@ metadata:
   annotations:
     config.kubernetes.io/local-config: "true"
 data:
-  version: v${KUBERNETES_VERSION}
+  k8s_version: v${KUBERNETES_VERSION}
   node_image_url: https://dl.metalkast.io/node-images/${VERSION}/cluster-node.img
   node_image_checksum: ${checksum}
 EOF
