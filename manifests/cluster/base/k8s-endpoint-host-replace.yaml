@@ -1,0 +1,20 @@
+source:
+  kind: ConfigMap
+  name: metalkast.io/cluster-config
+  fieldPath: data.control_plane_hostname
+targets:
+- select:
+    group: infrastructure.cluster.x-k8s.io
+    version: v1beta1
+    kind: Metal3Cluster
+  fieldPaths:
+    - spec.controlPlaneEndpoint.host
+  options:
+    create: true
+- select:
+    kind: ConfigMap
+    name: cilium-apiserver-endpoint
+  fieldPaths:
+    - data.KUBERNETES_SERVICE_HOST
+  options:
+    create: true

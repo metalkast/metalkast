@@ -1,6 +1,6 @@
 # SOPS integration
 
-You can encrypt these secrets with [SOPS][sops]:
+You can encrypt secrets with [SOPS][sops]:
 
 ```shell
 sops \
@@ -9,12 +9,12 @@ sops \
   nodes-secrets.yaml
 ```
 
-or setup `.sops.yaml` in the root of your repo
+Setup `.sops.yaml` in the root of your repo to automatically apply options for paths.
 
 ```yaml
 creation_rules:
   - age: <age_public_key>
-    encrypted-regex: '^(data|stringData)$'
+    encrypted_regex: '^(data|stringData)$'
     path_regex: ...
 ```
 

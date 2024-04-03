@@ -4,7 +4,6 @@ kind: Component
 resources:
   - cert-manager
   - cluster-api
-  - kubevip
   - baremetal-operator
 
 components:
