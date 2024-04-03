@@ -30,7 +30,7 @@ There's currently no Long Term Support (LTS) for any of the releases.
                                 commits.findIndex(cs => c.abbreviatedCommit === cs.abbreviatedCommit),
                                 commits.findIndex(cs => releaseCommits[i + 1].abbreviatedCommit === cs.abbreviatedCommit)
                             )
-                                .filter(c => c.include)
+                                .filter(c => c.imageChange)
                                 .map(c => `* [\`${c.abbreviatedCommit}\`](https://github.com/metalkast/metalkast/commit/${c.abbreviatedCommit}) ${c.message}`).join("\n")
                         )
                         : "")
@@ -42,7 +42,11 @@ There's currently no Long Term Support (LTS) for any of the releases.
 Example configuration:
 
 ${"```yaml"}
-${clusterManifest({ k8sVersion: r.url, manifestsRef: c.abbreviatedCommit })}
+${clusterManifest({
+                        k8sVersion: r.url, manifestsRef: c.abbreviatedCommit,
+                        controlPlaneHostname: "",
+                        controlPlaneIP: ""
+                    })}
 ${"```"}
 
 :::

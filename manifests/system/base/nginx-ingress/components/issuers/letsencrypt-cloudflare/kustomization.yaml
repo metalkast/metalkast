@@ -7,8 +7,8 @@ resources:
 replacements:
 - source:
     kind: ConfigMap
-    name: letsencrypt-config
-    fieldPath: data.email
+    name: metalkast.io/system-config
+    fieldPath: data.ingress_cert_email
   targets:
   - select:
       kind: ClusterIssuer

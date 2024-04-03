@@ -3,9 +3,13 @@ import { systemManifest } from "../../../../../utils/manifests"
 
 async function main() {
     console.log(systemManifest({
-        manifestsRef: (await loadCommits())[0].abbreviatedCommit,
+        manifestsRef: (await loadCommits())[0].commit,
         ingressIP: "",
-        ingressDomain: ""
+        ingressDomain: "",
+        extraComponents: [
+            "https://github.com/metalkast/metalkast//manifests/system/base/ironic/components/insecure",
+            "https://github.com/metalkast/metalkast//manifests/system/base/nginx-ingress/components/issuers/self-signed",
+        ]
     }))
 }
 
