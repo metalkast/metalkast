@@ -14,7 +14,7 @@ for k in $(grep -rl --include="*.yaml" "kind: Kustomization" "$git_root_director
     echo "Running kustomize build for layer: $relative_path"
 
     if ! err_output=$(kustomize build --enable-helm $dir 2>&1 > /dev/null); then
-        exit_code=$?
+        exit_code=1
         echo "$(tput setaf 1)Build failed for kustomize layer: $relative_path$(tput sgr 0)"
         echo $err_output |
             sed -E "s#'([^ ]+)'#\1#g" |
