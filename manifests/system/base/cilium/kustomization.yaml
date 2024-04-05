@@ -3,8 +3,10 @@ kind: Component
 
 resources:
   - internal
+  - ingress-ip-pool.yaml
   - load-balancer-config.yaml
   - kubernetes-service-host-env.yaml
 
 replacements:
   - path: kube-apiserver-ip-replace.yaml
+  - path: loadbalancer-ip-replace.yaml

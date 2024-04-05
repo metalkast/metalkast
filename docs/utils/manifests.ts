@@ -61,6 +61,6 @@ configMapGenerator:
 components:
   - https://github.com/metalkast/metalkast//manifests/system/base${remoteParams(options)}
   - https://github.com/metalkast/metalkast//manifests/system/base/ironic/components/insecure${remoteParams(options)}
-  - https://github.com/metalkast/metalkast//manifests/system/base/nginx-ingress/components/issuers/self-signed${remoteParams(options)}
+  - https://github.com/metalkast/metalkast//manifests/system/base/cilium/components/issuers/self-signed${remoteParams(options)}
 `.trim()
 }
