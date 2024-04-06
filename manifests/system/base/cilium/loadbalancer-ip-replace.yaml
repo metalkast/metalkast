@@ -5,7 +5,8 @@ source:
 targets:
   - select:
       kind: Service
-      name: ingress-nginx-controller
+      name: cilium-ingress
+      namespace: kube-system
     fieldPaths:
       - metadata.annotations.[io.cilium/lb-ipam-ips]
     options:
