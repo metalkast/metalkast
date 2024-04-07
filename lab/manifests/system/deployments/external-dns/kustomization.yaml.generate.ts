@@ -10,7 +10,7 @@ async function main() {
             ["ingress_cert_email", "letsencrypt@metalkast.io"],
         ]),
         extraComponents: [
-            "https://github.com/metalkast/metalkast//manifests/system/base/nginx-ingress/components/issuers/letsencrypt-cloudflare",
+            "https://github.com/metalkast/metalkast//manifests/system/base/cilium/components/issuers/letsencrypt-cloudflare",
         ]
     }))
 }

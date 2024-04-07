@@ -7,7 +7,7 @@ async function main() {
         ingressDomain: "192.168.123.105.nip.io",
         extraComponents: [
             "https://github.com/metalkast/metalkast//manifests/system/base/ironic/components/insecure",
-            "https://github.com/metalkast/metalkast//manifests/system/base/nginx-ingress/components/issuers/self-signed",
+            "https://github.com/metalkast/metalkast//manifests/system/base/cilium/components/issuers/self-signed",
         ]
     }))
 }
