@@ -5,7 +5,7 @@ import { loadCommits } from "../../../../../utils/commits";
 async function main() {
     console.log(clusterManifest({
         k8sVersion: (await latestRelease()).url,
-        manifestsRef: (await loadCommits())[0].abbreviatedCommit,
+        manifestsRef: (await loadCommits())[0].commit,
         controlPlaneHostname: "",
         controlPlaneIP: "",
     }))

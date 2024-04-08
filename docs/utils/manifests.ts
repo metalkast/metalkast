@@ -1,5 +1,6 @@
 interface ManifestOptions {
   manifestsRef?: string;
+  extraComponents?: string[];
 }
 
 function remoteParams(options: ManifestOptions) {
@@ -10,7 +11,6 @@ interface ClusterManifestOptions extends ManifestOptions {
   k8sVersion: string;
   controlPlaneHostname: string;
   controlPlaneIP: string;
-  extraCompoents?: string[];
 }
 
 export function clusterManifest(options: ClusterManifestOptions) {
@@ -35,13 +35,14 @@ configMapGenerator:
 components:
   - https://github.com/metalkast/metalkast//manifests/cluster/base${remoteParams(options)}
   - https://github.com/metalkast/metalkast//manifests/cluster/components/disable-certificate-verification${remoteParams(options)}
-${(options.extraCompoents ?? []).map(c => `  - ${c}`).join("\n")}
+${(options.extraComponents ?? []).map(c => `  - ${c.startsWith("https://github.com/metalkast/metalkast//") ? c + remoteParams(options) : c}`).join("\n")}
 `.trim()
 }
 
 interface SystemManifestOptions extends ManifestOptions {
   ingressIP: string;
   ingressDomain: string;
+  extraSystemConfigProperties?: Map<string, string>;
 }
 
 export function systemManifest(options: SystemManifestOptions) {
@@ -57,10 +58,10 @@ configMapGenerator:
     literals:
       - ingress_ip=${options.ingressIP} # [!code highlight]
       - ingress_domain=${options.ingressDomain} # [!code highlight]
+${Array.from(options.extraSystemConfigProperties ?? [], ([k, v]) => `      - ${k}=${v}`).join("")}
 
 components:
   - https://github.com/metalkast/metalkast//manifests/system/base${remoteParams(options)}
-  - https://github.com/metalkast/metalkast//manifests/system/base/ironic/components/insecure${remoteParams(options)}
-  - https://github.com/metalkast/metalkast//manifests/system/base/cilium/components/issuers/self-signed${remoteParams(options)}
+${(options.extraComponents ?? []).map(c => `  - ${c.startsWith("https://github.com/metalkast/metalkast//") ? c + remoteParams(options) : c}`).join("\n")}
 `.trim()
 }

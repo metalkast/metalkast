@@ -5,7 +5,7 @@ async function main() {
         k8sVersion: "../../configs/version/dev",
         controlPlaneHostname: "192.168.123.104.nip.io",
         controlPlaneIP: "192.168.123.104",
-        extraCompoents: [
+        extraComponents: [
             "../../components/debug",
         ],
         manifestsRef: "main",

@@ -12,13 +12,15 @@ export async function loadCommits() {
     const changelogCommits = (await exec(`git --git-dir ${path.join(__dirname, "../..", ".git")} log --pretty="format:%h" -- ${path.join(__dirname, "../..", "image-build")}`)).stdout.split("\n");
     return _.zipWith(
         await gitLog("%h"),
+        await gitLog("%H"),
         await gitLog("%s"),
         await gitLog("%ct"),
-        (abbreviatedCommit, message, time) => ({
+        (abbreviatedCommit, commit, message, time) => ({
             abbreviatedCommit,
+            commit,
             message,
             time: new Date(Number(time) * 1000),
-            include: changelogCommits.includes(abbreviatedCommit),
+            imageChange: changelogCommits.includes(abbreviatedCommit),
         })
     )
 }
