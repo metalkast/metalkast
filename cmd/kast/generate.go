@@ -247,7 +247,7 @@ func generateBareMetalHost(secret corev1.Secret, redfishUrl, suffix string, outp
 				"address":         fmt.Sprintf("%s-virtualmedia+%s", provider, redfishUrlParsed.JoinPath(systems[0].ODataID)),
 				"credentialsName": secret.Name,
 			},
-			"bootMACAddress": ethernetInterfaces[0].PermanentMACAddress,
+			"bootMACAddress": ethernetInterfaces[0].MACAddress,
 			"online":         true,
 			"rootDeviceHints": map[string]interface{}{
 				"minSizeGigabytes": 10,
