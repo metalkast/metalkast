@@ -21,3 +21,7 @@ helmCharts:
     ingressController:
       enabled: true
       loadbalancerMode: shared
+    hubble:
+      tls:
+        auto:
+          method: cronjob
