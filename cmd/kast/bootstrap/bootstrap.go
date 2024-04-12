@@ -95,6 +95,8 @@ func bootstrapClusterConfigFromManifests(manifests manifestival.Manifest) (*boot
 	).Transform(func(u *unstructured.Unstructured) error {
 		if u.GroupVersionKind() == kubeadmv1beta1.GroupVersion.WithKind("KubeadmControlPlane") {
 			unstructured.SetNestedField(u.Object, int64(1), "spec", "replicas")
+			// ClusterAPI requires maxSurge to be non-zero when replicas < 3
+			unstructured.SetNestedField(u.Object, int64(1), "spec", "rolloutStrategy", "rollingUpdate", "maxSurge")
 			setup.clusterNamespace = u.GetNamespace()
 			err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, kubeadmControlPlane)
 			if err != nil {

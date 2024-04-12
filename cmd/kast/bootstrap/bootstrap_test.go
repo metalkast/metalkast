@@ -94,6 +94,10 @@ spec:
       apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
       kind: Metal3MachineTemplate
       name: root-controlplane
+  rolloutStrategy:
+    rollingUpdate:
+      maxSurge: 1
+    type: RollingUpdate
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -214,6 +218,10 @@ spec:
       apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
       kind: Metal3MachineTemplate
       name: root-controlplane
+  rolloutStrategy:
+    rollingUpdate:
+      maxSurge: 0
+    type: RollingUpdate
 ---
 apiVersion: v1
 kind: ConfigMap
