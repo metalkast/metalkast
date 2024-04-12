@@ -7,7 +7,6 @@ helmCharts:
   namespace: kube-system
   version: 1.15.2
   repo: https://helm.cilium.io/
-  # TODO: ensure operator runs on control-plane nodes
   valuesInline:
     kubeProxyReplacement: true
     k8sServiceHost: "this need to be set but will be replaced"
@@ -25,3 +24,6 @@ helmCharts:
       tls:
         auto:
           method: cronjob
+    operator:
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
