@@ -69,6 +69,7 @@ kast bootstrap MANIFESTS...
 			if err := b.Run(bootstrap.BootstrapOptions{
 				BootstrapNodeOptions: bootstrap.BootstrapNodeOptions{
 					KubeCfgDestPath: path.Join(runDirectory, "bootstrap.kubeconfig"),
+					SSHKeyDestPath:  path.Join(runDirectory, "ssh.key"),
 				},
 			}); err != nil {
 				log.Log.Error(err, "Bootstrap failed")
