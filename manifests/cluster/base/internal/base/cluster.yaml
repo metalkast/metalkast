@@ -67,7 +67,7 @@ spec:
         set -x
         JOIN_CONFIG='/run/kubeadm/kubeadm-join-config.yaml'
         if [ -f "${JOIN_CONFIG}" ]; then
-          API_ENDPOINT="$(grep -oP '(?<=controlPlaneEndpoint: ).+(?=:6443)' ${JOIN_CONFIG})"
+          API_ENDPOINT="$(grep -oP '(?<=apiServerEndpoint: ).+(?=:6443)' ${JOIN_CONFIG})"
           echo "127.0.0.1 $API_ENDPOINT" >> /etc/hosts
         fi
   machineTemplate:
