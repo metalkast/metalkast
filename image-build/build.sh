@@ -7,7 +7,7 @@ rm -rf output/*
 export METALKAST_VERSION=$(git describe --always --dirty)
 export NETBOOT_BASE_URL=https://dl.metalkast.io/node-images/
 
-for v in 1.28.4 1.29.1; do
+for v in 1.28.4 1.29.3; do
     export KUBERNETES_VERSION=$v
     function compose() {
         docker compose -p image-build-$(echo $v | tr '.' '_') "$@"
