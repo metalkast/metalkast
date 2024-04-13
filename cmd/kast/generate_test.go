@@ -200,7 +200,7 @@ kind: BareMetalHost
 metadata:
   name: node-1
 spec:
-  automatedCleaning: disabled
+  automatedCleaningMode: disabled
   bmc:
     address: redfish-virtualmedia+http://host1/redfish/v1/Systems/7d7a911f-39db-478c-ba73-6e00bbdcf211
     credentialsName: k8s-nodes-a
@@ -214,7 +214,7 @@ kind: BareMetalHost
 metadata:
   name: node-2
 spec:
-  automatedCleaning: disabled
+  automatedCleaningMode: disabled
   bmc:
     address: redfish-virtualmedia+http://host2/redfish/v1/Systems/7d7a911f-39db-478c-ba73-6e00bbdcf212
     credentialsName: k8s-nodes-a
@@ -229,7 +229,7 @@ metadata:
   name: node-3
   namespace: test-ns
 spec:
-  automatedCleaning: disabled
+  automatedCleaningMode: disabled
   bmc:
     address: idrac-virtualmedia+http://host3:9000/redfish/v1/Systems/7d7a911f-39db-478c-ba73-6e00bbdcf213
     credentialsName: k8s-nodes-b
@@ -244,7 +244,7 @@ metadata:
   name: node-4
   namespace: test-ns
 spec:
-  automatedCleaning: disabled
+  automatedCleaningMode: disabled
   bmc:
     address: idrac-virtualmedia+http://host4:9000/redfish/v1/Systems/7d7a911f-39db-478c-ba73-6e00bbdcf214
     credentialsName: k8s-nodes-b
