@@ -27,3 +27,5 @@ helmCharts:
     operator:
       nodeSelector:
         node-role.kubernetes.io/control-plane: ""
+    ipam:
+      mode: kubernetes
