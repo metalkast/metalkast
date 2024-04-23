@@ -20,12 +20,30 @@ helmCharts:
     ingressController:
       enabled: true
       loadbalancerMode: shared
-    hubble:
-      tls:
-        auto:
-          method: cronjob
     operator:
       nodeSelector:
         node-role.kubernetes.io/control-plane: ""
     ipam:
       mode: kubernetes
+    hubble:
+      tls:
+        auto:
+          method: cronjob
+      relay:
+        enabled: true
+        rolloutPods: true
+      ui:
+        enabled: true
+        rolloutPods: true
+        ingress:
+          enabled: true
+          className: cilium
+          hosts:
+            - &hubble_host hubble.__DOMAIN__
+          tls:
+            - secretName: hubble-ui-tls
+              hosts:
+                - *hubble_host
+          annotations:
+            cert-manager.io/cluster-issuer: ingress-issuer
+            external-dns.alpha.kubernetes.io/hostname: *hubble_host

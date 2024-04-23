@@ -10,3 +10,4 @@ resources:
 replacements:
   - path: kube-apiserver-ip-replace.yaml
   - path: loadbalancer-ip-replace.yaml
+  - path: ingress-host-replace.yaml

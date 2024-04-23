@@ -1,0 +1,16 @@
+source:
+  kind: ConfigMap
+  name: metalkast.io/system-config
+  fieldPath: data.ingress_domain
+targets:
+  - select:
+      kind: Ingress
+      name: hubble-ui
+      namespace: kube-system
+    fieldPaths:
+      - spec.tls.0.hosts.0
+      - spec.rules.0.host
+      - metadata.annotations.[external-dns.alpha.kubernetes.io/hostname]
+    options:
+      delimiter: "."
+      index: 1
