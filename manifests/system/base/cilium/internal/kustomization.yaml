@@ -28,7 +28,7 @@ helmCharts:
     hubble:
       tls:
         auto:
-          method: cronjob
+          method: cronJob
       relay:
         enabled: true
         rolloutPods: true
