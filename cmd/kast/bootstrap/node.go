@@ -5,7 +5,9 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"encoding/pem"
 	"fmt"
+	"os"
 	"strings"
 	"text/template"
 	"time"
@@ -28,6 +30,7 @@ type BootstrapNode struct {
 	bmc         *bmc.BMC
 	liveIsoUrl  string
 	kubeCfgDest string
+	sshKeyDest  string
 }
 
 type BootstrapNodeOptions struct {
@@ -36,6 +39,7 @@ type BootstrapNodeOptions struct {
 	RedfishPassword string
 	LiveIsoUrl      string
 	KubeCfgDestPath string
+	SSHKeyDestPath  string
 }
 
 func NewBootstrapNode(options BootstrapNodeOptions) (*BootstrapNode, error) {
@@ -49,10 +53,16 @@ func NewBootstrapNode(options BootstrapNodeOptions) (*BootstrapNode, error) {
 		kubeCfgDest = "bootstrap.kubeconfig"
 	}
 
+	sshKeyDest := options.SSHKeyDestPath
+	if sshKeyDest == "" {
+		sshKeyDest = "ssh.key"
+	}
+
 	return &BootstrapNode{
 		bmc:         bmc,
 		liveIsoUrl:  options.LiveIsoUrl,
 		kubeCfgDest: kubeCfgDest,
+		sshKeyDest:  sshKeyDest,
 	}, nil
 }
 
@@ -284,6 +294,16 @@ func (n *BootstrapNode) BootstrapCluster() (*cluster.Cluster, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate temporary SSH key to use for bootstrap node: %w", err)
 	}
+
+	sshKeyFileContent, err := ssh.MarshalPrivateKey(privateKey, "")
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize ssh private key: %w", err)
+	}
+
+	if err = os.WriteFile(n.sshKeyDest, pem.EncodeToMemory(sshKeyFileContent), 0600); err != nil {
+		return nil, fmt.Errorf("failed to save ssh private key: %w", err)
+	}
+
 	sshConfig, err := n.configureSSH(*privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("failed to configure bootstrap node ssh via IPMI: %w", err)
