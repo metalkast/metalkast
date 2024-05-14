@@ -182,3 +182,26 @@ spec:
       dns:
         - "1.1.1.1"
         - "1.0.0.1"
+---
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+kind: Metal3DataTemplate
+metadata:
+  name: root-workers-template
+spec:
+  clusterName: root
+  networkData:
+    links:
+      ethernets:
+        - type: "phy"
+          id: "enp1s0"
+          mtu: 1500
+          macAddress:
+            fromHostInterface: "eth0"
+    networks:
+      ipv4DHCP:
+        - id: "baremetal"
+          link: "enp1s0"
+    services:
+      dns:
+        - "1.1.1.1"
+        - "1.0.0.1"
