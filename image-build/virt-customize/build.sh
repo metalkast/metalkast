@@ -23,7 +23,7 @@ CUSTOMIZED_UBUNTU_IMAGE=$OUTPUT_DIR/cluster-node.img
 # which will result in lots of zero writes and thus slow startup
 qemu-img convert -O raw $ORIGINAL_UBUNTU_IMAGE $CUSTOMIZED_UBUNTU_IMAGE
 # Give more space to OS to enable installing stuff
-qemu-img resize $CUSTOMIZED_UBUNTU_IMAGE +2.5G
+qemu-img resize $CUSTOMIZED_UBUNTU_IMAGE +2.7G
 
 # Customize the image
 virt-customize -v -x --commands-from-file commands -a "${CUSTOMIZED_UBUNTU_IMAGE}"

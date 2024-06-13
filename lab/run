@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+git_root_directory="$(git rev-parse --show-toplevel)"
+
+export KUBERNETES_VERSION="$(grep -oP '(?<=k8s_version=v).+' $git_root_directory/lab/manifests/cluster/configs/version/dev/kustomization.yaml)"
 export METALKAST_VERSION=dev
-export KUBERNETES_VERSION="1.28.4"
 export NETBOOT_BASE_URL=http://192.168.122.1/
 
 function compose() {
