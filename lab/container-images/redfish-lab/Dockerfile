@@ -25,6 +25,7 @@ RUN apt-get update -y && \
         nginx \
         fcgiwrap \
         spawn-fcgi \
+        gpg \
         # ipmi console access
         ipmitool \
         freeipmi-tools \
@@ -79,11 +80,10 @@ PROMPT='\$(kube_ps1)'\$PROMPT" >> /root/.zshrc
 EOF
 
 RUN <<EOF
-curl https://baltocdn.com/helm/signing.asc | gpg --dearmor | tee /usr/share/keyrings/helm.gpg > /dev/null
-apt-get install apt-transport-https --yes
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor -o /usr/share/keyrings/helm.gpg
+echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" > /etc/apt/sources.list.d/helm-stable-debian.list
 apt-get update
-apt-get install helm
+apt-get install -y --no-install-recommends helm
 EOF
 
 RUN mkdir -p /root/.kube
