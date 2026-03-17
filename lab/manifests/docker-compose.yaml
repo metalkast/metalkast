@@ -1,0 +1,17 @@
+services:
+  init-generate-manifests:
+    image: node:20
+    user: root
+    working_dir: /workspace
+    volumes:
+      - ../..:/workspace
+      - node_modules:/workspace/node_modules
+    command: sh -c "mkdir -p /workspace/node_modules && chown -R ${HOST_UID}:${HOST_GID} /workspace/node_modules"
+  generate-manifests:
+    image: node:25
+    user: "${HOST_UID}:${HOST_GID}"
+    volumes:
+      - ../..:/workspace
+      - node_modules:/workspace/node_modules
+    working_dir: /workspace
+    command: sh -c "git config --global --add safe.directory /workspace && npm install && npm run generate-manifests"

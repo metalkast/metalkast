@@ -1,5 +1,12 @@
 FROM ubuntu:22.04
 ARG KUBECTL_VERSION=v1.27.1
+ARG KVM_GID=994
+
+RUN if getent group kvm >/dev/null; then \
+      groupmod -g "${KVM_GID}" kvm; \
+    else \
+      groupadd -g "${KVM_GID}" kvm; \
+    fi
 
 RUN apt-get update -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \

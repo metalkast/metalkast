@@ -4,6 +4,9 @@ set -euo pipefail
 export METALKAST_VERSION=dev
 export KUBERNETES_VERSION="1.28.4"
 export NETBOOT_BASE_URL=http://192.168.122.1/
+export HOST_UID=$(id -u)
+export HOST_GID=$(id -g)
+export KVM_GID=$(stat -c '%g' /dev/kvm)
 
 function compose() {
     docker compose -p "metalkast-lab-$(id -u -n)" "$@"
@@ -14,7 +17,8 @@ compose down
 compose build
 compose up -d
 
-npm run generate-manifests
+compose run --rm init-generate-manifests
+compose run --rm generate-manifests
 
 # Copy manifests
 compose exec lab rm -rf /lab
