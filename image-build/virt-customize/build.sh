@@ -1,12 +1,24 @@
 #!/usr/bin/env bash
 set -eEuo pipefail
 
+SECONDS=0
+
+run_step() {
+  local name="$1"
+  shift
+  local start=$SECONDS
+  echo "[perf] START ${name} t=${start}s"
+  "$@"
+  local duration=$((SECONDS - start))
+  echo "[perf] END   ${name} dur=${duration}s total=${SECONDS}s"
+}
+
 VERSION=k8s-v$KUBERNETES_VERSION-ubuntu-$UBUNTU_VERSION-$UBUNTU_RELEASE-amd64-$METALKAST_VERSION
 OUTPUT_DIR=output/$VERSION
 
 printenv > printenv.txt
 BUILD_ENVIRONMENT_VERSION_FILE=shasum.txt
-find -type f -not \( -path "./output/*" -o -name $BUILD_ENVIRONMENT_VERSION_FILE \) | sort | xargs -L1 shasum -a 256 | tee $BUILD_ENVIRONMENT_VERSION_FILE
+run_step "build-environment-shasum" bash -c 'find -type f -not \( -path "./output/*" -o -name "$0" \) | sort | xargs -L1 shasum -a 256 | tee "$0"' "$BUILD_ENVIRONMENT_VERSION_FILE"
 if cmp -s "$BUILD_ENVIRONMENT_VERSION_FILE" "$OUTPUT_DIR/$BUILD_ENVIRONMENT_VERSION_FILE"; then
     echo "Build completed (cached)"
     exit 0
@@ -21,12 +33,12 @@ CUSTOMIZED_UBUNTU_IMAGE=$OUTPUT_DIR/cluster-node.img
 
 # We want to use raw because otherwise ironic is going to expand the img to the size of the disk
 # which will result in lots of zero writes and thus slow startup
-qemu-img convert -O raw $ORIGINAL_UBUNTU_IMAGE $CUSTOMIZED_UBUNTU_IMAGE
+run_step "qemu-img-convert" qemu-img convert -O raw "$ORIGINAL_UBUNTU_IMAGE" "$CUSTOMIZED_UBUNTU_IMAGE"
 # Give more space to OS to enable installing stuff
-qemu-img resize $CUSTOMIZED_UBUNTU_IMAGE +5G
+run_step "qemu-img-resize" qemu-img resize "$CUSTOMIZED_UBUNTU_IMAGE" +5G
 
 # Customize the image
-virt-customize -v -x --commands-from-file commands -a "${CUSTOMIZED_UBUNTU_IMAGE}"
+run_step "virt-customize-base-image" virt-customize -v -x --commands-from-file commands -a "${CUSTOMIZED_UBUNTU_IMAGE}"
 
 # TODO: this didn't work
 # # ironic can decompress the image
@@ -36,7 +48,7 @@ virt-customize -v -x --commands-from-file commands -a "${CUSTOMIZED_UBUNTU_IMAGE
 # generate checksum
 CUSTOMIZED_UBUNTU_IMAGE_BASENAME=$(basename $CUSTOMIZED_UBUNTU_IMAGE)
 CHECKSUM_FILE=${CUSTOMIZED_UBUNTU_IMAGE_BASENAME}.sha256sum
-(cd $OUTPUT_DIR; sha256sum "${CUSTOMIZED_UBUNTU_IMAGE_BASENAME}" > "${CHECKSUM_FILE}")
+run_step "generate-image-checksum" bash -c 'cd "$0" && sha256sum "$1" > "$2"' "$OUTPUT_DIR" "$CUSTOMIZED_UBUNTU_IMAGE_BASENAME" "$CHECKSUM_FILE"
 
 checksum=$(cat ${OUTPUT_DIR}/${CHECKSUM_FILE} | cut -d' ' -f1)
 cat <<EOF > $OUTPUT_DIR/config.yaml
@@ -52,7 +64,9 @@ data:
   node_image_checksum: ${checksum}
 EOF
 
-./bootstrap-build.sh
+run_step "bootstrap-live-iso-build" ./bootstrap-build.sh
 
 # Mark build as finished and enable caching
-cp $BUILD_ENVIRONMENT_VERSION_FILE $OUTPUT_DIR/$BUILD_ENVIRONMENT_VERSION_FILE
+run_step "persist-build-cache-fingerprint" cp "$BUILD_ENVIRONMENT_VERSION_FILE" "$OUTPUT_DIR/$BUILD_ENVIRONMENT_VERSION_FILE"
+
+echo "[perf] TOTAL image build time=${SECONDS}s"
