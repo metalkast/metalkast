@@ -65,7 +65,7 @@ sed -i '/casper/d' extracted/casper/filesystem.manifest-desktop
 rm -f extracted/casper/*.squashfs
 rm -f extracted/casper/*.squashfs.gpg
 
-run_step "rebuild-rootfs-squashfs" mksquashfs edit extracted/casper/filesystem.squashfs -comp xz
+run_step "rebuild-rootfs-squashfs" mksquashfs edit extracted/casper/filesystem.squashfs -comp zstd
 printf $(du -sx --block-size=1 edit | cut -f1) > extracted/casper/filesystem.size
 
 rm -rf extracted/pool
