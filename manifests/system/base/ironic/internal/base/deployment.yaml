@@ -91,7 +91,7 @@ spec:
             - mountPath: /etc/ironic-credentials
               name: ironic-credentials
         - name: ironic-inspector
-          image: ghcr.io/metalkast/ironic
+          image: ghcr.io/metalkast/ironic:31.0.0
           envFrom:
             - configMapRef:
                 name: ironic-inspector-conf-overrides

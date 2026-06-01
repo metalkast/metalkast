@@ -2,12 +2,12 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - https://github.com/metal3-io/baremetal-operator//config/default?ref=v0.5.0
-  - https://github.com/metal3-io/baremetal-operator//config/namespace?ref=v0.5.0
+  - https://github.com/metal3-io/baremetal-operator//config/default?ref=v0.12.3
+  - https://github.com/metal3-io/baremetal-operator//config/namespace?ref=v0.12.3
 
 images:
   - name: quay.io/metal3-io/baremetal-operator
-    newTag: v0.5.0
+    newTag: v0.12.3
 
 configMapGenerator:
   - name: ironic

@@ -6,6 +6,10 @@ labels:
     pairs:
       app.kubernetes.io/name: ironic
 
+images:
+  - name: ghcr.io/metalkast/ironic
+    newTag: 31.0.0
+
 resources:
   - deployment.yaml
   - service.yaml

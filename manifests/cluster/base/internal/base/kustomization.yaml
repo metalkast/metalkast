@@ -5,7 +5,7 @@ resources:
   - cluster.yaml
   - namespace.yaml
 
-configurations:
-  - namespace-config.yaml
+# configurations:
+#   - namespace-config.yaml
 
 namespace: capi-clusters

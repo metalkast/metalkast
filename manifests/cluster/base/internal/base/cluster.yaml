@@ -1,4 +1,4 @@
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: Cluster
 metadata:
   name: root
@@ -11,11 +11,11 @@ spec:
       cidrBlocks:
         - 10.96.0.0/12
   controlPlaneRef:
-    apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    apiGroup: controlplane.cluster.x-k8s.io
     kind: KubeadmControlPlane
     name: root
   infrastructureRef:
-    apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+    apiGroup: infrastructure.cluster.x-k8s.io
     kind: Metal3Cluster
     name: root
 ---
@@ -28,7 +28,7 @@ spec:
     port: 6443
   noCloudProvider: true
 ---
-apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+apiVersion: controlplane.cluster.x-k8s.io/v1beta2
 kind: KubeadmControlPlane
 metadata:
   name: root
@@ -40,7 +40,8 @@ spec:
       nodeRegistration:
         criSocket: unix:///var/run/containerd/containerd.sock
         kubeletExtraArgs:
-          node-labels: metal3.io/uuid={{ ds.meta_data.uuid }}
+          - name: node-labels
+            value: metal3.io/uuid={{ ds.meta_data.uuid }}
         name: "{{ ds.meta_data.name }}"
         taints:
           - key: node-role.kubernetes.io/control-plane
@@ -49,7 +50,8 @@ spec:
       nodeRegistration:
         criSocket: unix:///var/run/containerd/containerd.sock
         kubeletExtraArgs:
-          node-labels: metal3.io/uuid={{ ds.meta_data.uuid }}
+          - name: node-labels
+            value: metal3.io/uuid={{ ds.meta_data.uuid }}
         name: "{{ ds.meta_data.name }}"
         taints:
           - key: node-role.kubernetes.io/control-plane
@@ -71,16 +73,12 @@ spec:
           echo "127.0.0.1 $API_ENDPOINT" >> /etc/hosts
         fi
   machineTemplate:
-    infrastructureRef:
-      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
-      kind: Metal3MachineTemplate
-      name: root-controlplane
-    nodeDrainTimeout: 0s
+    spec:
+      infrastructureRef:
+        apiGroup: infrastructure.cluster.x-k8s.io
+        kind: Metal3MachineTemplate
+        name: root-controlplane
   replicas: 3
-  rolloutStrategy:
-    rollingUpdate:
-      maxSurge: 0
-    type: RollingUpdate
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
 kind: Metal3MachineTemplate
@@ -97,7 +95,7 @@ spec:
         checksumType: sha256
         format: raw
 ---
-apiVersion: cluster.x-k8s.io/v1beta1
+apiVersion: cluster.x-k8s.io/v1beta2
 kind: MachineDeployment
 metadata:
   labels:
@@ -119,15 +117,14 @@ spec:
     spec:
       bootstrap:
         configRef:
-          apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+          apiGroup: bootstrap.cluster.x-k8s.io
           kind: KubeadmConfigTemplate
           name: root-workers
       clusterName: root
       infrastructureRef:
-        apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+        apiGroup: infrastructure.cluster.x-k8s.io
         kind: Metal3MachineTemplate
         name: root-workers
-      nodeDrainTimeout: 0s
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
 kind: Metal3MachineTemplate
@@ -144,7 +141,7 @@ spec:
         checksumType: sha256
         format: raw
 ---
-apiVersion: bootstrap.cluster.x-k8s.io/v1beta1
+apiVersion: bootstrap.cluster.x-k8s.io/v1beta2
 kind: KubeadmConfigTemplate
 metadata:
   name: root-workers
@@ -157,7 +154,8 @@ spec:
       joinConfiguration:
         nodeRegistration:
           kubeletExtraArgs:
-            node-labels: metal3.io/uuid={{ ds.meta_data.uuid }}
+            - name: node-labels
+              value: metal3.io/uuid={{ ds.meta_data.uuid }}
           name: "{{ ds.meta_data.name }}"
 ---
 apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
