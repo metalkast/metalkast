@@ -1,5 +1,5 @@
 FROM ubuntu:22.04
-ARG KUBECTL_VERSION=v1.27.1
+ARG KUBECTL_VERSION=v1.36.1
 ARG KVM_GID=994
 
 RUN if getent group kvm >/dev/null; then \
@@ -50,6 +50,12 @@ RUN curl -L https://download.stateful.com/runme/1.7.3/runme_linux_x86_64.deb -o 
     dpkg -i runme_linux_x86_64.deb && \
     rm runme_linux_x86_64.deb
 
+RUN apt-get install -y locales && \
+    locale-gen en_US.UTF-8 && \
+    update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \
+    apt-get autoclean && \
+    apt-get autoremove
+
 RUN mkdir -p /root/zsh-completions
 RUN echo 'export fpath=(/root/zsh-completions $fpath)' >> /root/.zshrc
 RUN echo "rm -f ~/.zcompdump; compinit" >> /root/.zshrc
@@ -99,6 +105,7 @@ RUN sed -i -E 's/(hosts:\s+files)/\1 libvirt_guest/' /etc/nsswitch.conf
 
 RUN sed -i 's/listen 80/listen 192.168.122.1:80/' /etc/nginx/sites-enabled/default
 COPY nginx-git /etc/nginx/sites-enabled/
+COPY git-config-http /etc/
 
 RUN mkdir -p /opt/config
 COPY lab-network.xml /opt/config/lab-network.xml
@@ -112,4 +119,9 @@ COPY htpasswd /opt/config/htpasswd
 COPY sushy.conf.tmpl /opt/config/sushy.conf.tmpl
 
 COPY entrypoint.sh /entrypoint.sh
+
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+ENV LANGUAGE=en_US.UTF-8
+
 CMD ["/entrypoint.sh"]

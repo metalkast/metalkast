@@ -7,6 +7,6 @@ configMapGenerator:
       annotations:
         config.kubernetes.io/local-config: "true"
     literals:
-      - k8s_version=v1.28.4
-      - node_image_url=http://192.168.122.1/k8s-v1.28.4-ubuntu-22.04-20230719-amd64-dev/cluster-node.img
-      - node_image_checksum=http://192.168.122.1/k8s-v1.28.4-ubuntu-22.04-20230719-amd64-dev/cluster-node.img.sha256sum
+      - k8s_version=v1.36.1
+      - node_image_url=http://192.168.122.1/k8s-v1.36.1-ubuntu-22.04-20230719-amd64-dev/cluster-node.img
+      - node_image_checksum=http://192.168.122.1/k8s-v1.36.1-ubuntu-22.04-20230719-amd64-dev/cluster-node.img.sha256sum

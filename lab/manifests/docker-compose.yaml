@@ -1,6 +1,6 @@
 services:
   init-generate-manifests:
-    image: node:20
+    image: node:25
     user: root
     working_dir: /workspace
     volumes:

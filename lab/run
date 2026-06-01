@@ -2,7 +2,7 @@
 set -euo pipefail
 
 export METALKAST_VERSION=dev
-export KUBERNETES_VERSION="1.28.4"
+export KUBERNETES_VERSION="1.36.1"
 export NETBOOT_BASE_URL=http://192.168.122.1/
 export HOST_UID=$(id -u)
 export HOST_GID=$(id -g)

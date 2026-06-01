@@ -69,7 +69,7 @@ RUN apk add \
 	python3-dev \
 	musl-dev
 
-ARG IPA_VERSION=9.8.0
+ARG IPA_VERSION=11.5.0
 RUN pip3 install ironic-python-agent==${IPA_VERSION} --break-system-packages
 
 RUN apk del \
