@@ -13,7 +13,7 @@ import (
 
 	"github.com/manifestival/manifestival"
 	bmov1alpha1 "github.com/metal3-io/baremetal-operator/apis/metal3.io/v1alpha1"
-	metal3v1beta1 "github.com/metal3-io/cluster-api-provider-metal3/api/v1beta1"
+	capm3 "github.com/metal3-io/cluster-api-provider-metal3/api/v1beta1"
 	"github.com/metalkast/metalkast/cmd/kast/log"
 	"github.com/metalkast/metalkast/pkg/cluster"
 	"github.com/metalkast/metalkast/pkg/kustomize"
@@ -26,11 +26,14 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/tools/clientcmd"
-	clusterapiv1beta1 "sigs.k8s.io/cluster-api/api/v1beta1"
-	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
-	bootstrapv1beta1 "sigs.k8s.io/cluster-api/bootstrap/kubeadm/api/v1beta1"
-	kubeadmv1beta1 "sigs.k8s.io/cluster-api/controlplane/kubeadm/api/v1beta1"
+	bootstrapv1beta1 "sigs.k8s.io/cluster-api/api/bootstrap/kubeadm/v1beta1"
+	kubeadmv1beta2 "sigs.k8s.io/cluster-api/api/controlplane/kubeadm/v1beta2"
+	clusterv2 "sigs.k8s.io/cluster-api/api/core/v1beta2"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	metal3contractVersion = "v1beta1"
 )
 
 type Bootstrap struct {
@@ -87,20 +90,20 @@ func bootstrapClusterConfigFromManifests(manifests manifestival.Manifest) (*boot
 		panic(fmt.Errorf("failed to create manifests subset: %w", err))
 	}
 
-	kubeadmControlPlane := &kubeadmv1beta1.KubeadmControlPlane{}
+	kubeadmControlPlane := &kubeadmv1beta2.KubeadmControlPlane{}
 	setup.bootstrapClusterManifests, err = manifests.Filter(
 		manifestival.Not(manifestival.In(bmhManifest)),
 		manifestival.Not(manifestival.ByAnnotation(bootstrapClusterApplyAnnotation, "false")),
-		manifestival.Not(manifestival.ByKind(reflect.TypeOf(clusterapiv1beta1.MachineDeployment{}).Name())),
+		manifestival.Not(manifestival.ByKind(reflect.TypeOf(clusterv2.MachineDeployment{}).Name())),
 	).Transform(func(u *unstructured.Unstructured) error {
-		if u.GroupVersionKind() == kubeadmv1beta1.GroupVersion.WithKind("KubeadmControlPlane") {
+		gvk := u.GroupVersionKind()
+		if gvk.Kind == "KubeadmControlPlane" && gvk.Group == "controlplane.cluster.x-k8s.io" &&
+			gvk.Version == "v1beta2" {
 			unstructured.SetNestedField(u.Object, int64(1), "spec", "replicas")
-			// ClusterAPI requires maxSurge to be non-zero when replicas < 3
-			unstructured.SetNestedField(u.Object, int64(1), "spec", "rolloutStrategy", "rollingUpdate", "maxSurge")
 			setup.clusterNamespace = u.GetNamespace()
 			err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, kubeadmControlPlane)
 			if err != nil {
-				return err
+				return fmt.Errorf("failed to convert unstructured to KubeadmControlPlane: %w", err)
 			}
 		}
 		return nil
@@ -149,8 +152,8 @@ func bootstrapClusterConfigFromManifests(manifests manifestival.Manifest) (*boot
 	}
 
 	kubeadmControlPlaneMachineTemplateManifests := manifests.Filter(manifestival.All(
-		manifestival.ByGVK(kubeadmControlPlane.Spec.MachineTemplate.InfrastructureRef.GroupVersionKind()),
-		manifestival.ByName(kubeadmControlPlane.Spec.MachineTemplate.InfrastructureRef.Name),
+		manifestival.ByGVK(kubeadmControlPlane.Spec.MachineTemplate.Spec.InfrastructureRef.GroupKind().WithVersion(metal3contractVersion)),
+		manifestival.ByName(kubeadmControlPlane.Spec.MachineTemplate.Spec.InfrastructureRef.Name),
 		func(u *unstructured.Unstructured) bool {
 			return u.GetNamespace() == kubeadmControlPlane.GetNamespace()
 		},
@@ -159,7 +162,7 @@ func bootstrapClusterConfigFromManifests(manifests manifestival.Manifest) (*boot
 		return nil, fmt.Errorf("want exactly one machine template for KubeadmControlPlane, but found %d", l)
 	}
 
-	kubeadmControlPlaneMachineTemplate := &metal3v1beta1.Metal3MachineTemplate{}
+	kubeadmControlPlaneMachineTemplate := &capm3.Metal3MachineTemplate{}
 	err = runtime.DefaultUnstructuredConverter.FromUnstructured(
 		kubeadmControlPlaneMachineTemplateManifests.Resources()[0].Object,
 		kubeadmControlPlaneMachineTemplate,
@@ -182,11 +185,11 @@ func bootstrapClusterConfigFromManifests(manifests manifestival.Manifest) (*boot
 func targetClusterPreMoveManifests(manifests manifestival.Manifest) manifestival.Manifest {
 	return manifests.Filter(func(u *unstructured.Unstructured) bool {
 		excludedGroups := []string{
-			kubeadmv1beta1.GroupVersion.Group,
-			clusterapiv1beta1.GroupVersion.Group,
+			kubeadmv1beta2.GroupVersion.Group,
+			clusterv2.GroupVersion.Group,
 			bootstrapv1beta1.GroupVersion.Group,
 			bmov1alpha1.GroupVersion.Group,
-			metal3v1beta1.GroupVersion.Group,
+			capm3.GroupVersion.Group,
 		}
 		return !slices.Contains(excludedGroups, u.GroupVersionKind().Group)
 	})
@@ -295,17 +298,27 @@ func (b *Bootstrap) Run(options BootstrapOptions) error {
 
 	log.Log.Info("Waiting for target cluster to finish provisioning")
 	if err := wait.PollUntilContextTimeout(context.TODO(), time.Second*1, time.Minute*5, true, func(ctx context.Context) (bool, error) {
-		clusterList := &clusterv1.ClusterList{}
+		clusterList := &clusterv2.ClusterList{}
 		if err := bootstrapCluster.List(ctx, clusterList); err != nil {
 			log.Log.V(1).Error(err, "failed to list clusters")
 			return false, nil
 		}
-		if len(clusterList.Items) > 1 {
-			return false, fmt.Errorf("expected only single clusters")
-		} else if len(clusterList.Items) != 1 {
+
+		clusterCount := len(clusterList.Items)
+		if clusterCount == 0 {
 			return false, nil
 		}
-		return clusterList.Items[0].Status.ControlPlaneReady, nil
+
+		if clusterCount > 1 {
+			return false, fmt.Errorf("expected only one cluster, but found %d", clusterCount)
+		}
+
+		cpi := clusterList.Items[0].Status.Initialization.ControlPlaneInitialized
+		if cpi == nil {
+			return false, nil
+		}
+
+		return *cpi, nil
 	}); err != nil {
 		return fmt.Errorf("timed out waiting for target cluster to be provisioned: %w", err)
 	}
@@ -317,6 +330,26 @@ func (b *Bootstrap) Run(options BootstrapOptions) error {
 	)
 	if err != nil {
 		return fmt.Errorf("failed to initialize target cluster client: %w", err)
+	}
+
+	log.Log.Info("Waiting for CAPI webhook to be ready in target cluster")
+	if err := wait.PollUntilContextTimeout(context.TODO(), b.pollInterval, time.Minute*10, true, func(ctx context.Context) (bool, error) {
+		endpoints := &corev1.Endpoints{}
+		if err := targetCluster.Get(ctx, types.NamespacedName{
+			Name:      "capi-webhook-service",
+			Namespace: "capi-system",
+		}, endpoints); err != nil {
+			log.Log.V(1).Error(err, "failed to get CAPI webhook service endpoints")
+			return false, nil
+		}
+		for _, subset := range endpoints.Subsets {
+			if len(subset.Addresses) > 0 {
+				return true, nil
+			}
+		}
+		return false, nil
+	}); err != nil {
+		return fmt.Errorf("timed out waiting for CAPI webhook to be ready in target cluster: %w", err)
 	}
 
 	log.Log.Info("Moving the cluster")
@@ -348,7 +381,7 @@ You should now commit all the source files to the git repository.`,
 
 func (b *Bootstrap) getTargetClusterKubeconfig(bootstrapCluster *cluster.Cluster) ([]byte, error) {
 	kubeadmControlPlaneResources := b.manifests.Filter(
-		manifestival.ByGVK(kubeadmv1beta1.GroupVersion.WithKind("KubeadmControlPlane")),
+		manifestival.ByGVK(kubeadmv1beta2.GroupVersion.WithKind("KubeadmControlPlane")),
 	).Resources()
 	if l := len(kubeadmControlPlaneResources); l != 1 {
 		return nil, fmt.Errorf("want exactly one KubeadmControlPlane in manifests but found: %d", l)
