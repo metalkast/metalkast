@@ -3,7 +3,7 @@
 CLUSTER_API_PROVIDER_VERSION_FILE=cluster-api.version
 CLUSTER_API_PROVIDER_VERSION=$(file < $(CLUSTER_API_PROVIDER_VERSION_FILE))
 
-CLUSTERCTL=bin/clusterctl
+CLUSTERCTL?=bin/clusterctl
 $(CLUSTERCTL):
 	mkdir -p $(dir $(CLUSTERCTL))
 	curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/$(CLUSTER_API_PROVIDER_VERSION)/clusterctl-$(shell uname | tr '[A-Z]' '[a-z]')-amd64 -o $(CLUSTERCTL)
