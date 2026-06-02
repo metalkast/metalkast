@@ -5,7 +5,7 @@ source:
 targets:
   - select:
       group: controlplane.cluster.x-k8s.io
-      version: v1beta1
+      version: v1beta2
       kind: KubeadmControlPlane
     fieldPaths:
       - spec.version
@@ -13,7 +13,7 @@ targets:
       create: true
   - select:
       group: cluster.x-k8s.io
-      version: v1beta1
+      version: v1beta2
       kind: MachineDeployment
     fieldPaths:
       - spec.template.spec.version

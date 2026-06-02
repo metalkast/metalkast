@@ -1,11 +1,11 @@
-FROM alpine:3.19.0
+FROM alpine:3.23.0
 
 RUN apk add \
   build-base \
   ipmitool \
   python3-dev \
   py3-alembic \
-  py3-bcrypt \
+#  py3-bcrypt \
   py3-cryptography \
   py3-greenlet \
   py3-lxml \
@@ -28,10 +28,11 @@ RUN apk add \
   qemu-img \
   syslinux
 
-ARG IRONIC_VERSION=23.1.0
+ARG IRONIC_VERSION=31.0.0
 
 RUN pip3 install --break-system-packages --no-cache-dir \
   ironic==${IRONIC_VERSION} \
+  "bcrypt<5" \
   ironic-inspector \
   python-dracclient \
   python-ibmcclient \

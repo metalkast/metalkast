@@ -1,10 +1,10 @@
 ---
-version: "3"
-
 services:
   lab:
     build:
       context: container-images/redfish-lab
+      args:
+        KVM_GID: "${KVM_GID}"
     privileged: true
     volumes:
       - build-output:/var/www/html
@@ -12,6 +12,8 @@ services:
     depends_on:
       image-build:
         condition: service_completed_successfully
-
+volumes:
+  node_modules:
 include:
   - ../image-build/docker-compose.yaml
+  - manifests/docker-compose.yaml
