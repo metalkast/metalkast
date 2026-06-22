@@ -51,5 +51,3 @@ EOF
 
 # https://github.com/containerd/containerd/blob/main/docs/getting-started.md#interacting-with-containerd-via-cli
 # TODO: install cri-tools to enable debugging
-
-apt-get clean -yq

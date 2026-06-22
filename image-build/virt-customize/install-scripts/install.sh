@@ -17,3 +17,5 @@ set +a
 for script in ${INSTALL_SCRIPTS}/!(${SCRIPT_NAME}|${ENV_FILE}); do
     $script
 done
+
+apt-get clean -yq
