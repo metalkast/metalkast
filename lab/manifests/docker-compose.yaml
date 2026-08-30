@@ -17,7 +17,7 @@ services:
       - node_modules:/workspace/node_modules
       - ${METALKAST_GIT_COMMON_DIR}:${METALKAST_GIT_COMMON_DIR}:ro
     working_dir: /workspace
-    command: sh -c "git config --global safe.directory '*' && npm install && npm run generate-manifests"
+    command: sh -c "git config --global --add safe.directory /workspace && npm install && npm run generate-manifests"
 
 volumes:
   node_modules:
