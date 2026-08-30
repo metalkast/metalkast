@@ -1,5 +1,6 @@
 FROM ubuntu:22.04
 ARG KUBECTL_VERSION=v1.36.1
+ARG HELM_VERSION=v3.21.4
 ARG KVM_GID=994
 
 RUN if getent group kvm >/dev/null; then \
@@ -77,23 +78,18 @@ echo 'export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"' >> /root/.zshrc
 zsh -c 'source /root/.zshrc; kubectl krew install ctx ns konfig'
 EOF
 
-COPY kube-ps1.patch /
 RUN <<EOF
 git clone https://github.com/jonmosco/kube-ps1.git /opt/kube-ps1
-(
-    cd /opt/kube-ps1; git apply /kube-ps1.patch; rm -f /kube-ps1.patch
-)
 echo "
+export KUBE_PS1_SYMBOL_ENABLE=false
 source /opt/kube-ps1/kube-ps1.sh
 PROMPT='\$(kube_ps1)'\$PROMPT" >> /root/.zshrc
 EOF
 
-RUN <<EOF
-curl -fsSL https://packages.buildkite.com/helm-linux/helm-debian/gpgkey | gpg --dearmor -o /usr/share/keyrings/helm.gpg
-echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main" > /etc/apt/sources.list.d/helm-stable-debian.list
-apt-get update
-apt-get install -y --no-install-recommends helm
-EOF
+RUN curl -fsSL "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" -o /tmp/helm.tar.gz && \
+    tar -C /tmp -xzf /tmp/helm.tar.gz && \
+    mv /tmp/linux-amd64/helm /usr/local/bin/helm && \
+    rm -rf /tmp/helm.tar.gz /tmp/linux-amd64
 
 RUN mkdir -p /root/.kube
 
