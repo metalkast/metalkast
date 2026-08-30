@@ -4,7 +4,7 @@ import { data } from './index.data.ts'
 
 # Get started
 
-This guide will help you deploying a basic Kubernetes cluster on your bare metal machines.
+This guide will help you deploy a basic Kubernetes cluster on your bare metal machines.
 
 > [!IMPORTANT]
 > The current setup requires a working DHCP server configured to assign IPs and nameservers to target nodes.
@@ -66,7 +66,7 @@ The example is encrypted with [sops](/sops).
 
 ## Configure system manifests
 
-Create a kustomization layer in `{{ data.systemManifestsPath }}` directory and use the example below are reference for your configuration.
+Create a kustomization layer in `{{ data.systemManifestsPath }}` directory and use the example below as reference for your configuration.
 
 ::: code-group
 
@@ -78,7 +78,7 @@ Create a kustomization layer in `{{ data.systemManifestsPath }}` directory and u
 
 Generate `BareMetalHosts` manifests and make sure to include them in cluster's manifests.
 
-```shell-vue { name=generate }
+```shell-vue
 kast generate \
   {{ data.clusterManifestsPath }}/nodes-secrets.yaml \
   {{ data.clusterManifestsPath }}/nodes.yaml
@@ -88,7 +88,7 @@ kast generate \
 
 Finally, run the bootstrap. This can take up to an hour depending on your hardware.
 
-```shell-vue { name=bootstrap }
+```shell-vue
 kast bootstrap \
   {{ data.systemManifestsPath }} \
   {{ data.clusterManifestsPath }}
