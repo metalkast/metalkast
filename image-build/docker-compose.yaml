@@ -15,3 +15,5 @@ services:
 
 volumes:
   build-output:
+    external: true
+    name: metalkast-lab-${METALKAST_LAB_USER}-build-output

@@ -1,6 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 
-namespace=metalkast-lab-$(id -u -n)
+if [[ $# -lt 1 ]]; then
+    echo "Usage: $0 <lab-id>" >&2
+    exit 1
+fi
+
+LAB_ID="$1"
+LAB_USER=$(id -u -n)
+namespace="metalkast-lab-${LAB_USER}-${LAB_ID}"
 
 docker compose -p "${namespace}" exec -w /lab lab zsh

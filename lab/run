@@ -1,6 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [[ $# -lt 1 ]]; then
+    echo "Usage: $0 <lab-id>" >&2
+    exit 1
+fi
+
+LAB_ID="$1"
+export METALKAST_LAB_USER=$(id -u -n)
+
+# Resolve the common git dir (handles both normal repos and worktrees).
+# In a worktree, .git is a file pointing into the main repo's .git/worktrees/;
+# we mount the common dir at the same absolute path so git inside the container
+# can resolve that pointer.
+_GIT_COMMON_DIR=$(git -C .. rev-parse --git-common-dir)
+if [[ ! "$_GIT_COMMON_DIR" = /* ]]; then
+    _GIT_COMMON_DIR="$(git -C .. rev-parse --show-toplevel)/${_GIT_COMMON_DIR}"
+fi
+export METALKAST_GIT_COMMON_DIR="$_GIT_COMMON_DIR"
+unset _GIT_COMMON_DIR
+
 export METALKAST_VERSION=dev
 export KUBERNETES_VERSION="1.36.1"
 export NETBOOT_BASE_URL=http://192.168.122.1/
@@ -8,14 +27,30 @@ export HOST_UID=$(id -u)
 export HOST_GID=$(id -g)
 export KVM_GID=$(stat -c '%g' /dev/kvm)
 
+BUILD_OUTPUT_VOLUME="metalkast-lab-${METALKAST_LAB_USER}-build-output"
+NODE_MODULES_VOLUME="metalkast-lab-${METALKAST_LAB_USER}-node-modules"
+
 function compose() {
-    docker compose -p "metalkast-lab-$(id -u -n)" "$@"
+    docker compose -p "metalkast-lab-${METALKAST_LAB_USER}-${LAB_ID}" "$@"
 }
+
+# Create shared volumes if they don't exist
+docker volume create "${BUILD_OUTPUT_VOLUME}" >/dev/null
+docker volume create "${NODE_MODULES_VOLUME}" >/dev/null
 
 # Reset docker-compose
 compose down
 compose build
-compose up -d
+
+# Serialize image-build across all labs for this user so concurrent runs don't
+# stomp on the shared build-output volume. flock waits until any other lab
+# running image-build for this user finishes, then runs ours — Docker's layer
+# cache makes the second run fast.
+IMAGE_BUILD_LOCK="/tmp/metalkast-lab-${METALKAST_LAB_USER}-image-build.lock"
+(
+    flock 9
+    compose up -d
+) 9>"${IMAGE_BUILD_LOCK}"
 
 compose run --rm init-generate-manifests
 compose run --rm generate-manifests
@@ -31,7 +66,6 @@ compose exec lab find /lab/manifests/ -type f -exec sed -i 's#https://github.com
 compose cp ../docs/get-started/index.md lab:/lab
 
 # Install kast bin
-make -C .. clean
 make -C .. build
 compose cp ../_out/kast lab:/usr/local/bin
 

@@ -10,8 +10,16 @@ services:
   generate-manifests:
     image: node:25
     user: "${HOST_UID}:${HOST_GID}"
+    environment:
+      HOME: /tmp
     volumes:
       - ../..:/workspace
       - node_modules:/workspace/node_modules
+      - ${METALKAST_GIT_COMMON_DIR}:${METALKAST_GIT_COMMON_DIR}:ro
     working_dir: /workspace
     command: sh -c "git config --global --add safe.directory /workspace && npm install && npm run generate-manifests"
+
+volumes:
+  node_modules:
+    external: true
+    name: metalkast-lab-${METALKAST_LAB_USER}-node-modules
