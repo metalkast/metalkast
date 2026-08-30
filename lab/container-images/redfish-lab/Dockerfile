@@ -46,10 +46,6 @@ RUN apt-get update -y && \
 
 RUN pip install sushy-tools libvirt-python git+https://github.com/metalkast/virtualbmc.git
 
-RUN curl -L https://download.stateful.com/runme/1.7.3/runme_linux_x86_64.deb -o runme_linux_x86_64.deb && \
-    dpkg -i runme_linux_x86_64.deb && \
-    rm runme_linux_x86_64.deb
-
 RUN apt-get install -y locales && \
     locale-gen en_US.UTF-8 && \
     update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 && \

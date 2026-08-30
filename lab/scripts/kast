@@ -5,16 +5,12 @@ for i in `seq 1 3`; do
   until curl -k --silent -o /dev/null "https://192.168.122.10$i/redfish/v1"; do sleep 1; done
 done
 
-function run() {
-  # Normally, we would run: runme --filename getting-started.md run $1
-  # But runme run command intereferes with logging output of kast
-  runme print $1 | head -n -2 | tail -n +2 | sed 's/\\$//' | tr "\n" " " |
-    sed 's#{{ data.clusterManifestsPath }}#manifests/cluster/deployments/dev#g' |
-    sed 's#{{ data.systemManifestsPath }}#manifests/system/deployments/dev#g' |
-    xargs -I_cmd bash -c "_cmd"
-}
-
 export SOPS_AGE_KEY="AGE-SECRET-KEY-15JLZDHADZ45JVZXMKSAM9U8AHE47DDK7DTJL7XNR0G27U4P9XRHQLNKUH2"
 
-run generate
-run bootstrap
+kast generate \
+  manifests/cluster/deployments/dev/nodes-secrets.yaml \
+  manifests/cluster/deployments/dev/nodes.yaml
+
+kast bootstrap \
+  manifests/system/deployments/dev \
+  manifests/cluster/deployments/dev
