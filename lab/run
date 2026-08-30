@@ -42,16 +42,15 @@ docker volume create "${NODE_MODULES_VOLUME}" >/dev/null
 compose down
 compose build
 
-# Only run image-build if the shared volume is not yet populated
-BUILD_OUTPUT_POPULATED=$(docker run --rm \
-    -v "${BUILD_OUTPUT_VOLUME}:/out" \
-    alpine sh -c 'ls /out | wc -l')
-
-if [[ "${BUILD_OUTPUT_POPULATED}" == "0" ]]; then
+# Serialize image-build across all labs for this user so concurrent runs don't
+# stomp on the shared build-output volume. flock waits until any other lab
+# running image-build for this user finishes, then runs ours — Docker's layer
+# cache makes the second run fast.
+IMAGE_BUILD_LOCK="/tmp/metalkast-lab-${METALKAST_LAB_USER}-image-build.lock"
+(
+    flock 9
     compose up -d
-else
-    compose up -d lab --no-deps
-fi
+) 9>"${IMAGE_BUILD_LOCK}"
 
 compose run --rm init-generate-manifests
 compose run --rm generate-manifests
